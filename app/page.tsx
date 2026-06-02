@@ -37,11 +37,32 @@ const accessories = [
 
 const warrantyBreakdown = [
   { issue: "N/A", total: 10, standard: 10, kids: 0 },
+  { issue: "Anti-glare film peeling", total: 3, standard: 3, kids: 0 },
+  { issue: "Blank screen backlight on", total: 5, standard: 5, kids: 0 },
   { issue: "Build Quality", total: 18, standard: 16, kids: 2 },
   { issue: "Charging / Port Issue", total: 7, standard: 6, kids: 1 },
-  { issue: "Dead Pixel", total: 4, standard: 3, kids: 1 },
-  { issue: "Blank Screen Backlight On", total: 3, standard: 3, kids: 0 },
+  { issue: "Chipped screen", total: 2, standard: 2, kids: 0 },
+  { issue: "Dark lines", total: 4, standard: 4, kids: 0 },
+  { issue: "Dead brick", total: 2, standard: 2, kids: 0 },
+  { issue: "Dead pixel", total: 4, standard: 3, kids: 1 },
+  { issue: "Device shuts off randomly", total: 3, standard: 3, kids: 0 },
+  { issue: "Does not boot up past logo", total: 2, standard: 2, kids: 0 },
+  { issue: "Flashing black bars (TV static)", total: 2, standard: 2, kids: 0 },
+  { issue: "Fried circuit", total: 1, standard: 1, kids: 0 },
+  { issue: "Hot Spot doesn't work", total: 1, standard: 1, kids: 0 },
+  { issue: "Liquid crystal leakage", total: 2, standard: 2, kids: 0 },
+  { issue: "No Visible Backlight", total: 2, standard: 2, kids: 0 },
+  { issue: "PU Coat Degradation / Discoloration", total: 3, standard: 3, kids: 0 },
+  { issue: "SD Card doesn't work", total: 1, standard: 1, kids: 0 },
+  { issue: "Speaker Issue", total: 1, standard: 1, kids: 0 },
+  { issue: "Stylus", total: 2, standard: 2, kids: 0 },
+  { issue: "WiFi Issues", total: 1, standard: 1, kids: 0 },
 ];
+
+const topWarrantyIssues = [...warrantyBreakdown]
+  .filter((item) => item.issue !== "N/A")
+  .sort((a, b) => b.total - a.total)
+  .slice(0, 5);
 
 const openBoxBreakdown = [
   { grade: "VIP", total: 8, standard: 5, kids: 3 },
@@ -193,6 +214,35 @@ function SmallTable({
   );
 }
 
+function TopWarrantyIssues() {
+  return (
+    <div className="grid gap-3 md:grid-cols-5">
+      {topWarrantyIssues.map((item, index) => (
+        <div
+          key={item.issue}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+        >
+          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+            #{index + 1}
+          </p>
+
+          <p className="mt-2 min-h-[40px] text-sm font-medium leading-5 text-neutral-800">
+            {item.issue}
+          </p>
+
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950">
+            {item.total}
+          </p>
+
+          <p className="mt-2 text-xs text-neutral-500">
+            Standard: {item.standard} · Kids: {item.kids}
+          </p>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950 sm:px-6 lg:px-8">
@@ -284,8 +334,17 @@ export default function Home() {
           </Section>
 
           <Section
-            title="Warranty Breakdown"
-            description="Warranty-condition units grouped by issue type."
+            title="Top Warranty Issues"
+            description="Highest-count warranty issues, excluding N/A."
+          >
+            <TopWarrantyIssues />
+          </Section>
+        </div>
+
+        <div className="mt-6">
+          <Section
+            title="All Warranty Issues"
+            description="Full warranty-condition breakdown by issue type."
           >
             <SmallTable
               headers={["Issue", "Total", "Standard", "Kids"]}
