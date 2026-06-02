@@ -214,6 +214,47 @@ function SmallTable({
   );
 }
 
+function OpenBoxCards() {
+  return (
+    <div className="grid gap-4 md:grid-cols-3">
+      {openBoxBreakdown.map((item) => (
+        <div
+          key={item.grade}
+          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5"
+        >
+          <p className="text-sm font-medium text-neutral-500">{item.grade}</p>
+
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+            {item.total}
+          </p>
+
+          <p className="mt-1 text-sm text-neutral-500">Total units</p>
+
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="rounded-xl bg-white px-3 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                Standard
+              </p>
+              <p className="mt-1 text-xl font-semibold text-neutral-950">
+                {item.standard}
+              </p>
+            </div>
+
+            <div className="rounded-xl bg-white px-3 py-3">
+              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+                Kids
+              </p>
+              <p className="mt-1 text-xl font-semibold text-neutral-950">
+                {item.kids}
+              </p>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function TopWarrantyIssues() {
   return (
     <div className="grid gap-3 md:grid-cols-5">
@@ -316,15 +357,7 @@ export default function Home() {
             title="Open Box Breakdown"
             description="Open Box inventory grouped by creak grade."
           >
-            <SmallTable
-              headers={["Grade", "Total", "Standard", "Kids"]}
-              rows={openBoxBreakdown.map((item) => [
-                item.grade,
-                String(item.total),
-                String(item.standard),
-                String(item.kids),
-              ])}
-            />
+            <OpenBoxCards />
           </Section>
 
           <Section
@@ -377,4 +410,4 @@ export default function Home() {
       </div>
     </main>
   );
-} 
+}
