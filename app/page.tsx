@@ -25,6 +25,12 @@ const inventoryStatus = [
   },
 ];
 
+const openBoxBreakdown = [
+  { grade: "VIP", total: 8, standard: 5, kids: 3 },
+  { grade: "Sellable", total: 27, standard: 21, kids: 6 },
+  { grade: "Warranty Grade", total: 9, standard: 7, kids: 2 },
+];
+
 const accessories = [
   { name: "Kids Case", quantity: 13 },
   { name: "Daylight Sling", quantity: 20 },
@@ -63,12 +69,6 @@ const topWarrantyIssues = [...warrantyBreakdown]
   .filter((item) => item.issue !== "N/A")
   .sort((a, b) => b.total - a.total)
   .slice(0, 5);
-
-const openBoxBreakdown = [
-  { grade: "VIP", total: 8, standard: 5, kids: 3 },
-  { grade: "Sellable", total: 27, standard: 21, kids: 6 },
-  { grade: "Warranty Grade", total: 9, standard: 7, kids: 2 },
-];
 
 function MetricCard({
   label,
@@ -311,7 +311,22 @@ export default function Home() {
           </div>
         </section>
 
-        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+          <Section
+            title="Open Box Breakdown"
+            description="Open Box inventory grouped by creak grade."
+          >
+            <SmallTable
+              headers={["Grade", "Total", "Standard", "Kids"]}
+              rows={openBoxBreakdown.map((item) => [
+                item.grade,
+                String(item.total),
+                String(item.standard),
+                String(item.kids),
+              ])}
+            />
+          </Section>
+
           <Section
             title="Accessories"
             description="Quantity-based items currently tracked through the IMS."
@@ -332,7 +347,9 @@ export default function Home() {
               ))}
             </div>
           </Section>
+        </div>
 
+        <div className="mt-6">
           <Section
             title="Top Warranty Issues"
             description="Highest-count warranty issues, excluding N/A."
@@ -357,24 +374,7 @@ export default function Home() {
             />
           </Section>
         </div>
-
-        <div className="mt-6">
-          <Section
-            title="Open Box Breakdown"
-            description="Open Box inventory grouped by creak grade."
-          >
-            <SmallTable
-              headers={["Grade", "Total", "Standard", "Kids"]}
-              rows={openBoxBreakdown.map((item) => [
-                item.grade,
-                String(item.total),
-                String(item.standard),
-                String(item.kids),
-              ])}
-            />
-          </Section>
-        </div>
       </div>
     </main>
   );
-}
+} 
