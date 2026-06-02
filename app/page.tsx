@@ -1,10 +1,10 @@
 const overviewStats = [
-  { label: "Total DC-1s", value: 144, subtext: "Office inventory" },
-  { label: "Standard", value: 109, subtext: "Standard DC-1s" },
-  { label: "Kids", value: 35, subtext: "Kids DC-1s" },
+  { label: "Total DC-1s", value: 144, description: "All office DC-1 inventory" },
+  { label: "Standard", value: 109, description: "Standard DC-1 units" },
+  { label: "Kids", value: 35, description: "Kids DC-1 units" },
 ];
 
-const statusStats = [
+const inventoryStatus = [
   { label: "New Units", value: 25 },
   { label: "Warranty", value: 76 },
   { label: "Open Box", value: 44 },
@@ -34,141 +34,219 @@ const openBoxBreakdown = [
   { grade: "Warranty Grade", total: 9, standard: 7, kids: 2 },
 ];
 
-function StatCard({
+function MetricCard({
   label,
   value,
-  subtext,
+  description,
 }: {
   label: string;
   value: number;
-  subtext?: string;
+  description?: string;
 }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-neutral-500">{label}</p>
-      <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
-        {value}
-      </p>
-      {subtext && <p className="mt-2 text-sm text-neutral-400">{subtext}</p>}
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-neutral-500">{label}</p>
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+            {value}
+          </p>
+        </div>
+      </div>
+
+      {description && (
+        <p className="mt-3 text-sm leading-5 text-neutral-500">
+          {description}
+        </p>
+      )}
     </div>
   );
 }
 
-function SectionCard({
+function Section({
   title,
+  description,
   children,
 }: {
   title: string;
+  description?: string;
   children: React.ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <h2 className="text-lg font-semibold text-neutral-950">{title}</h2>
-      <div className="mt-4">{children}</div>
+      <div className="border-b border-neutral-200 pb-4">
+        <h2 className="text-lg font-semibold tracking-tight text-neutral-950">
+          {title}
+        </h2>
+        {description && (
+          <p className="mt-1 text-sm text-neutral-500">{description}</p>
+        )}
+      </div>
+
+      <div className="pt-4">{children}</div>
     </section>
+  );
+}
+
+function SmallTable({
+  headers,
+  rows,
+}: {
+  headers: string[];
+  rows: string[][];
+}) {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-neutral-200">
+      <div
+        className="grid bg-neutral-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500"
+        style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}
+      >
+        {headers.map((header, index) => (
+          <p key={header} className={index === 0 ? "text-left" : "text-right"}>
+            {header}
+          </p>
+        ))}
+      </div>
+
+      {rows.map((row) => (
+        <div
+          key={row.join("-")}
+          className="grid border-t border-neutral-200 px-4 py-3 text-sm"
+          style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}
+        >
+          {row.map((cell, index) => (
+            <p
+              key={`${cell}-${index}`}
+              className={
+                index === 0
+                  ? "text-left font-medium text-neutral-800"
+                  : "text-right font-semibold text-neutral-950"
+              }
+            >
+              {cell}
+            </p>
+          ))}
+        </div>
+      ))}
+    </div>
   );
 }
 
 export default function Home() {
   return (
     <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-6xl">
-        <header className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-neutral-500">
-              Daylight Internal
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight sm:text-4xl">
-              IMS Dashboard
-            </h1>
-            <p className="mt-2 text-sm text-neutral-500">
-              Office inventory overview using mock report data.
-            </p>
-          </div>
+      <div className="mx-auto max-w-7xl">
+        <header className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
+                Daylight Internal
+              </p>
 
-          <div className="rounded-2xl bg-neutral-950 px-4 py-3 text-sm text-white">
-            Last updated: Mock Data
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
+                IMS Dashboard
+              </h1>
+
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">
+                Office inventory overview based on the IMS Report tab. This
+                mockup uses placeholder data while the dashboard layout is being
+                reviewed.
+              </p>
+            </div>
+
+            <div className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm">
+              <p className="font-medium text-neutral-950">Status</p>
+              <p className="mt-1 text-neutral-500">Mock Data · Not Live Yet</p>
+            </div>
           </div>
         </header>
 
-        <section className="grid gap-4 sm:grid-cols-3">
-          {overviewStats.map((stat) => (
-            <StatCard
-              key={stat.label}
-              label={stat.label}
-              value={stat.value}
-              subtext={stat.subtext}
-            />
-          ))}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              Overview
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {overviewStats.map((stat) => (
+              <MetricCard
+                key={stat.label}
+                label={stat.label}
+                value={stat.value}
+                description={stat.description}
+              />
+            ))}
+          </div>
         </section>
 
-        <section className="mt-4 grid gap-4 sm:grid-cols-3">
-          {statusStats.map((stat) => (
-            <StatCard key={stat.label} label={stat.label} value={stat.value} />
-          ))}
+        <section className="mb-6">
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              Inventory Status
+            </h2>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {inventoryStatus.map((stat) => (
+              <MetricCard key={stat.label} label={stat.label} value={stat.value} />
+            ))}
+          </div>
         </section>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-2">
-          <SectionCard title="Accessories">
-            <div className="space-y-3">
+        <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
+          <Section
+            title="Accessories"
+            description="Quantity-based items currently tracked through the IMS."
+          >
+            <div className="divide-y divide-neutral-200">
               {accessories.map((item) => (
                 <div
                   key={item.name}
-                  className="flex items-center justify-between rounded-xl bg-neutral-50 px-4 py-3"
+                  className="flex items-center justify-between py-3"
                 >
-                  <span className="text-sm font-medium text-neutral-700">
+                  <p className="text-sm font-medium text-neutral-800">
                     {item.name}
-                  </span>
-                  <span className="text-lg font-semibold text-neutral-950">
+                  </p>
+                  <p className="text-lg font-semibold text-neutral-950">
                     {item.quantity}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
-
-          <SectionCard title="Open Box Breakdown">
-            <div className="space-y-3">
-              {openBoxBreakdown.map((item) => (
-                <div key={item.grade} className="rounded-xl bg-neutral-50 p-4">
-                  <div className="flex items-center justify-between">
-                    <p className="font-medium text-neutral-800">{item.grade}</p>
-                    <p className="text-xl font-semibold">{item.total}</p>
-                  </div>
-                  <p className="mt-2 text-sm text-neutral-500">
-                    Standard: {item.standard} · Kids: {item.kids}
                   </p>
                 </div>
               ))}
             </div>
-          </SectionCard>
+          </Section>
+
+          <Section
+            title="Warranty Breakdown"
+            description="Warranty-condition units grouped by issue type."
+          >
+            <SmallTable
+              headers={["Issue", "Total", "Standard", "Kids"]}
+              rows={warrantyBreakdown.map((item) => [
+                item.issue,
+                String(item.total),
+                String(item.standard),
+                String(item.kids),
+              ])}
+            />
+          </Section>
         </div>
 
         <div className="mt-6">
-          <SectionCard title="Warranty Breakdown">
-            <div className="overflow-hidden rounded-xl border border-neutral-200">
-              <div className="grid grid-cols-4 bg-neutral-950 px-4 py-3 text-sm font-medium text-white">
-                <p>Issue</p>
-                <p className="text-right">Total</p>
-                <p className="text-right">Standard</p>
-                <p className="text-right">Kids</p>
-              </div>
-
-              {warrantyBreakdown.map((item) => (
-                <div
-                  key={item.issue}
-                  className="grid grid-cols-4 border-t border-neutral-200 px-4 py-3 text-sm"
-                >
-                  <p className="font-medium text-neutral-800">{item.issue}</p>
-                  <p className="text-right font-semibold">{item.total}</p>
-                  <p className="text-right text-neutral-600">
-                    {item.standard}
-                  </p>
-                  <p className="text-right text-neutral-600">{item.kids}</p>
-                </div>
-              ))}
-            </div>
-          </SectionCard>
+          <Section
+            title="Open Box Breakdown"
+            description="Open Box inventory grouped by creak grade."
+          >
+            <SmallTable
+              headers={["Grade", "Total", "Standard", "Kids"]}
+              rows={openBoxBreakdown.map((item) => [
+                item.grade,
+                String(item.total),
+                String(item.standard),
+                String(item.kids),
+              ])}
+            />
+          </Section>
         </div>
       </div>
     </main>
