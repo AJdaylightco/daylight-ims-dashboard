@@ -13,9 +13,9 @@ const inventoryStatus = [
   },
   {
     label: "Warranty",
-    total: 76,
+    total: 75,
     standard: 75,
-    kids: 1,
+    kids: 0,
   },
   {
     label: "Open Box",
@@ -70,6 +70,24 @@ const topWarrantyIssues = [...warrantyBreakdown]
   .sort((a, b) => b.total - a.total)
   .slice(0, 5);
 
+const dclStats = [
+  {
+    label: "DCL Total Units",
+    value: "Pending",
+    description: "Awaiting eFactory API connection",
+  },
+  {
+    label: "DCL Standard",
+    value: "Pending",
+    description: "3PL Standard DC-1 inventory",
+  },
+  {
+    label: "DCL Kids",
+    value: "Pending",
+    description: "3PL Kids DC-1 inventory",
+  },
+];
+
 function MetricCard({
   label,
   value,
@@ -81,14 +99,37 @@ function MetricCard({
 }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium text-neutral-500">{label}</p>
-          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
-            {value}
-          </p>
-        </div>
-      </div>
+      <p className="text-sm font-medium text-neutral-500">{label}</p>
+
+      <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+        {value}
+      </p>
+
+      {description && (
+        <p className="mt-3 text-sm leading-5 text-neutral-500">
+          {description}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function PlaceholderCard({
+  label,
+  value,
+  description,
+}: {
+  label: string;
+  value: string;
+  description?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-5 shadow-sm">
+      <p className="text-sm font-medium text-neutral-500">{label}</p>
+
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-neutral-400">
+        {value}
+      </p>
 
       {description && (
         <p className="mt-3 text-sm leading-5 text-neutral-500">
@@ -156,6 +197,7 @@ function Section({
         <h2 className="text-lg font-semibold tracking-tight text-neutral-950">
           {title}
         </h2>
+
         {description && (
           <p className="mt-1 text-sm text-neutral-500">{description}</p>
         )}
@@ -286,8 +328,32 @@ function TopWarrantyIssues() {
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-neutral-100 px-4 py-6 text-neutral-950 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl">
+    <main id="top" className="min-h-screen bg-neutral-100 text-neutral-950">
+      <nav className="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <a href="#top" className="text-sm font-semibold text-neutral-950">
+            Daylight IMS
+          </a>
+
+          <div className="flex flex-wrap gap-2">
+            <a
+              href="#office"
+              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              Office Inventory
+            </a>
+
+            <a
+              href="#dcl"
+              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+            >
+              DCL Inventory
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -300,9 +366,9 @@ export default function Home() {
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">
-                Office inventory overview based on the IMS Report tab. This
-                mockup uses placeholder data while the dashboard layout is being
-                reviewed.
+                Internal inventory dashboard for Office and DCL inventory views.
+                This mockup uses placeholder data while the dashboard layout is
+                being reviewed.
               </p>
             </div>
 
@@ -313,16 +379,145 @@ export default function Home() {
           </div>
         </header>
 
-        <section className="mb-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-              Overview
+        <section id="office" className="scroll-mt-24">
+          <div className="mb-4 flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
+              Office Inventory
+            </p>
+
+            <h2 className="text-2xl font-bold tracking-tight text-neutral-950">
+              Office IMS Report View
             </h2>
+
+            <p className="max-w-3xl text-sm leading-6 text-neutral-500">
+              This section represents inventory tracked through the Office IMS
+              Report tab, including DC-1 totals, condition status, open box
+              grades, accessories, and warranty breakdowns.
+            </p>
+          </div>
+
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                Overview
+              </h3>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {overviewStats.map((stat) => (
+                <MetricCard
+                  key={stat.label}
+                  label={stat.label}
+                  value={stat.value}
+                  description={stat.description}
+                />
+              ))}
+            </div>
+          </section>
+
+          <section className="mb-6">
+            <div className="mb-3 flex items-center justify-between">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+                Inventory Status
+              </h3>
+            </div>
+
+            <div className="mb-4 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600 shadow-sm">
+              <span className="font-medium text-neutral-950">Count logic:</span>{" "}
+              Total DC-1s = New Units + Warranty + Open Box. Standard/Kids
+              splits are shown inside each category.
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              {inventoryStatus.map((stat) => (
+                <StatusCard
+                  key={stat.label}
+                  label={stat.label}
+                  total={stat.total}
+                  standard={stat.standard}
+                  kids={stat.kids}
+                />
+              ))}
+            </div>
+          </section>
+
+          <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
+            <Section
+              title="Open Box Breakdown"
+              description="Open Box inventory grouped by creak grade."
+            >
+              <OpenBoxCards />
+            </Section>
+
+            <Section
+              title="Accessories"
+              description="Quantity-based items currently tracked through the IMS."
+            >
+              <div className="divide-y divide-neutral-200">
+                {accessories.map((item) => (
+                  <div
+                    key={item.name}
+                    className="flex items-center justify-between py-3"
+                  >
+                    <p className="text-sm font-medium text-neutral-800">
+                      {item.name}
+                    </p>
+                    <p className="text-lg font-semibold text-neutral-950">
+                      {item.quantity}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </Section>
+          </div>
+
+          <div className="mt-6">
+            <Section
+              title="Top Warranty Issues"
+              description="Highest-count warranty issues, excluding N/A."
+            >
+              <TopWarrantyIssues />
+            </Section>
+          </div>
+
+          <div className="mt-6">
+            <Section
+              title="All Warranty Issues"
+              description="Full warranty-condition breakdown by issue type."
+            >
+              <SmallTable
+                headers={["Issue", "Total", "Standard", "Kids"]}
+                rows={warrantyBreakdown.map((item) => [
+                  item.issue,
+                  String(item.total),
+                  String(item.standard),
+                  String(item.kids),
+                ])}
+              />
+            </Section>
+          </div>
+        </section>
+
+        <section id="dcl" className="mt-10 scroll-mt-24">
+          <div className="mb-4 flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
+              DCL Inventory
+            </p>
+
+            <h2 className="text-2xl font-bold tracking-tight text-neutral-950">
+              DCL / 3PL Inventory View
+            </h2>
+
+            <p className="max-w-3xl text-sm leading-6 text-neutral-500">
+              This section is reserved for DCL inventory. Live values will be
+              connected later through the eFactory API or another agreed data
+              source.
+            </p>
           </div>
 
           <div className="grid gap-4 md:grid-cols-3">
-            {overviewStats.map((stat) => (
-              <MetricCard
+            {dclStats.map((stat) => (
+              <PlaceholderCard
                 key={stat.label}
                 label={stat.label}
                 value={stat.value}
@@ -330,83 +525,20 @@ export default function Home() {
               />
             ))}
           </div>
-        </section>
 
-        <section className="mb-6">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
-              Inventory Status
-            </h2>
-          </div>
+          <div className="mt-6 rounded-3xl border border-dashed border-neutral-300 bg-white p-5 shadow-sm">
+            <h3 className="text-lg font-semibold tracking-tight text-neutral-950">
+              DCL Data Placeholder
+            </h3>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {inventoryStatus.map((stat) => (
-              <StatusCard
-                key={stat.label}
-                label={stat.label}
-                total={stat.total}
-                standard={stat.standard}
-                kids={stat.kids}
-              />
-            ))}
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">
+              DCL inventory is intentionally separated from Office inventory so
+              each source can be reviewed independently. This section is not
+              connected yet and is included only to show the planned navigation
+              and dashboard structure.
+            </p>
           </div>
         </section>
-
-        <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-          <Section
-            title="Open Box Breakdown"
-            description="Open Box inventory grouped by creak grade."
-          >
-            <OpenBoxCards />
-          </Section>
-
-          <Section
-            title="Accessories"
-            description="Quantity-based items currently tracked through the IMS."
-          >
-            <div className="divide-y divide-neutral-200">
-              {accessories.map((item) => (
-                <div
-                  key={item.name}
-                  className="flex items-center justify-between py-3"
-                >
-                  <p className="text-sm font-medium text-neutral-800">
-                    {item.name}
-                  </p>
-                  <p className="text-lg font-semibold text-neutral-950">
-                    {item.quantity}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </Section>
-        </div>
-
-        <div className="mt-6">
-          <Section
-            title="Top Warranty Issues"
-            description="Highest-count warranty issues, excluding N/A."
-          >
-            <TopWarrantyIssues />
-          </Section>
-        </div>
-
-        <div className="mt-6">
-          <Section
-            title="All Warranty Issues"
-            description="Full warranty-condition breakdown by issue type."
-          >
-            <SmallTable
-              headers={["Issue", "Total", "Standard", "Kids"]}
-              rows={warrantyBreakdown.map((item) => [
-                item.issue,
-                String(item.total),
-                String(item.standard),
-                String(item.kids),
-              ])}
-            />
-          </Section>
-        </div>
       </div>
     </main>
   );
