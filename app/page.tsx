@@ -5,9 +5,24 @@ const overviewStats = [
 ];
 
 const inventoryStatus = [
-  { label: "New Units", value: 25 },
-  { label: "Warranty", value: 76 },
-  { label: "Open Box", value: 44 },
+  {
+    label: "New Units",
+    total: 25,
+    standard: 15,
+    kids: 10,
+  },
+  {
+    label: "Warranty",
+    total: 76,
+    standard: 75,
+    kids: 1,
+  },
+  {
+    label: "Open Box",
+    total: 44,
+    standard: 19,
+    kids: 25,
+  },
 ];
 
 const accessories = [
@@ -63,6 +78,48 @@ function MetricCard({
   );
 }
 
+function StatusCard({
+  label,
+  total,
+  standard,
+  kids,
+}: {
+  label: string;
+  total: number;
+  standard: number;
+  kids: number;
+}) {
+  return (
+    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
+      <p className="text-sm font-medium text-neutral-500">{label}</p>
+
+      <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+        {total}
+      </p>
+
+      <p className="mt-1 text-sm text-neutral-500">Total units</p>
+
+      <div className="mt-4 grid grid-cols-2 gap-3">
+        <div className="rounded-xl bg-neutral-50 px-3 py-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+            Standard
+          </p>
+          <p className="mt-1 text-xl font-semibold text-neutral-950">
+            {standard}
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-neutral-50 px-3 py-3">
+          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+            Kids
+          </p>
+          <p className="mt-1 text-xl font-semibold text-neutral-950">{kids}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Section({
   title,
   description,
@@ -99,7 +156,9 @@ function SmallTable({
     <div className="overflow-hidden rounded-2xl border border-neutral-200">
       <div
         className="grid bg-neutral-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500"
-        style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}
+        style={{
+          gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))`,
+        }}
       >
         {headers.map((header, index) => (
           <p key={header} className={index === 0 ? "text-left" : "text-right"}>
@@ -112,7 +171,9 @@ function SmallTable({
         <div
           key={row.join("-")}
           className="grid border-t border-neutral-200 px-4 py-3 text-sm"
-          style={{ gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))` }}
+          style={{
+            gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))`,
+          }}
         >
           {row.map((cell, index) => (
             <p
@@ -189,7 +250,13 @@ export default function Home() {
 
           <div className="grid gap-4 md:grid-cols-3">
             {inventoryStatus.map((stat) => (
-              <MetricCard key={stat.label} label={stat.label} value={stat.value} />
+              <StatusCard
+                key={stat.label}
+                label={stat.label}
+                total={stat.total}
+                standard={stat.standard}
+                kids={stat.kids}
+              />
             ))}
           </div>
         </section>
