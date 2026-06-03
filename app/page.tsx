@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Image from "next/image";
 
 const overviewStats = [
   {
@@ -27,7 +28,7 @@ const inventoryStatus = [
     total: 25,
     standard: 15,
     kids: 10,
-    accent: "soft",
+    accent: "neutral",
   },
   {
     label: "Warranty",
@@ -118,17 +119,17 @@ const dclStats = [
 function getAccentClasses(accent?: string) {
   if (accent === "warranty") {
     return {
-      border: "border-amber-200",
-      bg: "bg-amber-50",
-      text: "text-amber-800",
+      border: "border-orange-200",
+      bg: "bg-orange-50",
+      text: "text-orange-800",
     };
   }
 
   if (accent === "openbox") {
     return {
-      border: "border-emerald-200",
-      bg: "bg-emerald-50",
-      text: "text-emerald-800",
+      border: "border-amber-200",
+      bg: "bg-amber-50",
+      text: "text-amber-800",
     };
   }
 
@@ -285,9 +286,9 @@ function OpenBoxCards() {
       {openBoxBreakdown.map((item) => (
         <div
           key={item.grade}
-          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-transform duration-200 hover:-translate-y-0.5"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-5 transition-transform duration-200 hover:-translate-y-0.5"
         >
-          <p className="text-sm font-medium text-emerald-800">{item.grade}</p>
+          <p className="text-sm font-medium text-amber-800">{item.grade}</p>
 
           <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
             {item.total}
@@ -326,9 +327,9 @@ function TopWarrantyIssues() {
       {topWarrantyIssues.map((item, index) => (
         <div
           key={item.issue}
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition-transform duration-200 hover:-translate-y-0.5"
+          className="rounded-2xl border border-orange-200 bg-orange-50 p-4 transition-transform duration-200 hover:-translate-y-0.5"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
             #{index + 1}
           </p>
 
@@ -377,7 +378,7 @@ function WarrantyIssueBars() {
 
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-amber-400 to-orange-400"
+                  className="h-full rounded-full bg-orange-300"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
@@ -411,13 +412,16 @@ function SectionDivider() {
   );
 }
 
-function DaylightBadge() {
+function DaylightLogoBadge() {
   return (
-    <div className="fixed bottom-4 right-4 z-40 hidden rounded-2xl border border-stone-200 bg-white/90 px-3 py-2 shadow-lg shadow-stone-300/20 backdrop-blur sm:flex sm:items-center sm:gap-2">
-      <div className="relative h-4 w-4">
-        <div className="absolute inset-0 rounded-full bg-amber-300" />
-        <div className="absolute inset-[3px] rounded-full bg-white" />
-      </div>
+    <div className="fixed bottom-4 right-4 z-40 hidden items-center gap-3 rounded-2xl border border-stone-200 bg-white/90 px-3 py-3 shadow-lg shadow-stone-300/20 backdrop-blur sm:flex">
+      <Image
+        src="/daylight-logo.png"
+        alt="Daylight logo"
+        width={34}
+        height={34}
+        className="h-8 w-8 object-contain"
+      />
       <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">
         Daylight
       </span>
@@ -429,15 +433,22 @@ export default function Home() {
   return (
     <main id="top" className="relative min-h-screen bg-stone-100 text-stone-950">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
-        <div className="absolute -left-28 top-0 h-80 w-80 rounded-full bg-amber-200/30 blur-3xl" />
-        <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-emerald-200/20 blur-3xl" />
-        <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-orange-200/20 blur-3xl" />
+        <div className="absolute -left-28 top-0 h-80 w-80 rounded-full bg-amber-200/20 blur-3xl" />
+        <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-orange-200/15 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-yellow-200/10 blur-3xl" />
       </div>
 
       <nav className="sticky top-0 z-50 border-b border-stone-200 bg-stone-100/85 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <a href="#top" className="text-sm font-semibold text-stone-950">
-            Daylight IMS
+          <a href="#top" className="flex items-center gap-2 text-sm font-semibold text-stone-950">
+            <Image
+              src="/daylight-logo.png"
+              alt="Daylight logo"
+              width={22}
+              height={22}
+              className="h-5 w-5 object-contain"
+            />
+            <span>Daylight IMS</span>
           </a>
 
           <div className="flex flex-wrap gap-2">
@@ -460,7 +471,7 @@ export default function Home() {
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm shadow-stone-200/40">
-          <div className="h-2 bg-gradient-to-r from-emerald-200 via-amber-200 to-orange-200" />
+          <div className="h-2 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500" />
 
           <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -637,7 +648,7 @@ export default function Home() {
         </section>
       </div>
 
-      <DaylightBadge />
+      <DaylightLogoBadge />
     </main>
   );
 }
