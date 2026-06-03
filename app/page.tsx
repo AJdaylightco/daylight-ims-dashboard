@@ -25,18 +25,21 @@ const inventoryStatus = [
     total: 25,
     standard: 15,
     kids: 10,
+    accent: "gold",
   },
   {
     label: "Warranty",
     total: 75,
     standard: 75,
     kids: 0,
+    accent: "orange",
   },
   {
     label: "Open Box",
     total: 44,
     standard: 19,
     kids: 25,
+    accent: "clay",
   },
 ];
 
@@ -89,6 +92,82 @@ const maxWarrantyIssueTotal = Math.max(
   ...warrantyBreakdown.map((item) => item.total)
 );
 
+const dclStats = [
+  {
+    source: "DCL",
+    label: "Total Units",
+    value: "Pending",
+    description: "Awaiting eFactory API connection",
+  },
+  {
+    source: "DCL",
+    label: "Standard",
+    value: "Pending",
+    description: "3PL Standard DC-1 inventory",
+  },
+  {
+    source: "DCL",
+    label: "Kids",
+    value: "Pending",
+    description: "3PL Kids DC-1 inventory",
+  },
+];
+
+function getAccentClasses(accent?: string) {
+  if (accent === "gold") {
+    return {
+      border: "border-yellow-200",
+      bg: "bg-yellow-50",
+      text: "text-yellow-800",
+      softText: "text-yellow-700",
+      bar: "bg-yellow-500",
+      chip: "bg-yellow-100 text-yellow-800 border-yellow-200",
+    };
+  }
+
+  if (accent === "orange") {
+    return {
+      border: "border-orange-200",
+      bg: "bg-orange-50",
+      text: "text-orange-800",
+      softText: "text-orange-700",
+      bar: "bg-orange-500",
+      chip: "bg-orange-100 text-orange-800 border-orange-200",
+    };
+  }
+
+  if (accent === "clay") {
+    return {
+      border: "border-stone-300",
+      bg: "bg-stone-100",
+      text: "text-stone-800",
+      softText: "text-stone-700",
+      bar: "bg-stone-500",
+      chip: "bg-stone-100 text-stone-800 border-stone-300",
+    };
+  }
+
+  if (accent === "brown") {
+    return {
+      border: "border-amber-300",
+      bg: "bg-amber-100",
+      text: "text-amber-900",
+      softText: "text-amber-800",
+      bar: "bg-amber-700",
+      chip: "bg-amber-100 text-amber-900 border-amber-300",
+    };
+  }
+
+  return {
+    border: "border-stone-200",
+    bg: "bg-white",
+    text: "text-stone-700",
+    softText: "text-stone-600",
+    bar: "bg-stone-500",
+    chip: "bg-stone-50 text-stone-700 border-stone-200",
+  };
+}
+
 function MetricCard({
   source,
   label,
@@ -101,27 +180,55 @@ function MetricCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          {source && (
-            <span className="mb-3 inline-flex rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs font-medium text-neutral-500">
-              {source}
-            </span>
-          )}
+    <div className="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm shadow-amber-100/40">
+      <div>
+        {source && (
+          <span className="mb-3 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">
+            {source}
+          </span>
+        )}
 
-          <p className="text-sm font-medium text-neutral-500">{label}</p>
+        <p className="text-sm font-medium text-stone-500">{label}</p>
 
-          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
-            {value}
-          </p>
-        </div>
+        <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
+          {value}
+        </p>
       </div>
 
       {description && (
-        <p className="mt-3 text-sm leading-5 text-neutral-500">
-          {description}
-        </p>
+        <p className="mt-3 text-sm leading-5 text-stone-500">{description}</p>
+      )}
+    </div>
+  );
+}
+
+function PlaceholderCard({
+  source,
+  label,
+  value,
+  description,
+}: {
+  source?: string;
+  label: string;
+  value: string;
+  description?: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-amber-300 bg-white p-5 shadow-sm shadow-amber-100/40">
+      {source && (
+        <span className="mb-3 inline-flex rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-900">
+          {source}
+        </span>
+      )}
+
+      <p className="text-sm font-medium text-stone-500">{label}</p>
+
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-800">
+        {value}
+      </p>
+
+      {description && (
+        <p className="mt-3 text-sm leading-5 text-stone-500">{description}</p>
       )}
     </div>
   );
@@ -132,37 +239,43 @@ function StatusCard({
   total,
   standard,
   kids,
+  accent,
 }: {
   label: string;
   total: number;
   standard: number;
   kids: number;
+  accent?: string;
 }) {
-  return (
-    <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-neutral-500">{label}</p>
+  const accentClasses = getAccentClasses(accent);
 
-      <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+  return (
+    <div
+      className={`rounded-2xl border ${accentClasses.border} bg-white p-5 shadow-sm shadow-amber-100/40`}
+    >
+      <p className={`text-sm font-medium ${accentClasses.text}`}>{label}</p>
+
+      <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
         {total}
       </p>
 
-      <p className="mt-1 text-sm text-neutral-500">Total units</p>
+      <p className="mt-1 text-sm text-stone-500">Total units</p>
 
       <div className="mt-4 grid grid-cols-2 gap-3">
-        <div className="rounded-xl bg-neutral-50 px-3 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+        <div className={`rounded-xl ${accentClasses.bg} px-3 py-3`}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
             Standard
           </p>
-          <p className="mt-1 text-xl font-semibold text-neutral-950">
+          <p className="mt-1 text-xl font-semibold text-stone-950">
             {standard}
           </p>
         </div>
 
-        <div className="rounded-xl bg-neutral-50 px-3 py-3">
-          <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+        <div className={`rounded-xl ${accentClasses.bg} px-3 py-3`}>
+          <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
             Kids
           </p>
-          <p className="mt-1 text-xl font-semibold text-neutral-950">{kids}</p>
+          <p className="mt-1 text-xl font-semibold text-stone-950">{kids}</p>
         </div>
       </div>
     </div>
@@ -179,14 +292,14 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <div className="border-b border-neutral-200 pb-4">
-        <h2 className="text-lg font-semibold tracking-tight text-neutral-950">
+    <section className="rounded-3xl border border-amber-200 bg-white p-5 shadow-sm shadow-amber-100/40">
+      <div className="border-b border-amber-100 pb-4">
+        <h2 className="text-lg font-semibold tracking-tight text-stone-950">
           {title}
         </h2>
 
         {description && (
-          <p className="mt-1 text-sm text-neutral-500">{description}</p>
+          <p className="mt-1 text-sm text-stone-500">{description}</p>
         )}
       </div>
 
@@ -201,31 +314,31 @@ function OpenBoxCards() {
       {openBoxBreakdown.map((item) => (
         <div
           key={item.grade}
-          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-5"
+          className="rounded-2xl border border-stone-300 bg-stone-100 p-5"
         >
-          <p className="text-sm font-medium text-neutral-500">{item.grade}</p>
+          <p className="text-sm font-medium text-stone-800">{item.grade}</p>
 
-          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
             {item.total}
           </p>
 
-          <p className="mt-1 text-sm text-neutral-500">Total units</p>
+          <p className="mt-1 text-sm text-stone-500">Total units</p>
 
           <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl bg-white px-3 py-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
                 Standard
               </p>
-              <p className="mt-1 text-xl font-semibold text-neutral-950">
+              <p className="mt-1 text-xl font-semibold text-stone-950">
                 {item.standard}
               </p>
             </div>
 
             <div className="rounded-xl bg-white px-3 py-3">
-              <p className="text-xs font-medium uppercase tracking-wide text-neutral-400">
+              <p className="text-xs font-medium uppercase tracking-wide text-stone-400">
                 Kids
               </p>
-              <p className="mt-1 text-xl font-semibold text-neutral-950">
+              <p className="mt-1 text-xl font-semibold text-stone-950">
                 {item.kids}
               </p>
             </div>
@@ -242,21 +355,21 @@ function TopWarrantyIssues() {
       {topWarrantyIssues.map((item, index) => (
         <div
           key={item.issue}
-          className="rounded-2xl border border-neutral-200 bg-neutral-50 p-4"
+          className="rounded-2xl border border-orange-200 bg-orange-50 p-4"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">
+          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
             #{index + 1}
           </p>
 
-          <p className="mt-2 min-h-[40px] text-sm font-medium leading-5 text-neutral-800">
+          <p className="mt-2 min-h-[40px] text-sm font-medium leading-5 text-stone-800">
             {item.issue}
           </p>
 
-          <p className="mt-3 text-3xl font-semibold tracking-tight text-neutral-950">
+          <p className="mt-3 text-3xl font-semibold tracking-tight text-stone-950">
             {item.total}
           </p>
 
-          <p className="mt-2 text-xs text-neutral-500">
+          <p className="mt-2 text-xs text-stone-500">
             Standard: {item.standard} · Kids: {item.kids}
           </p>
         </div>
@@ -267,8 +380,8 @@ function TopWarrantyIssues() {
 
 function WarrantyIssueBars() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200">
-      <div className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 bg-neutral-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+    <div className="overflow-hidden rounded-2xl border border-amber-200">
+      <div className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 bg-amber-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-amber-800">
         <p>Issue</p>
         <p className="text-right">Total</p>
         <p className="text-right">Standard</p>
@@ -284,32 +397,30 @@ function WarrantyIssueBars() {
         return (
           <div
             key={item.issue}
-            className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 border-t border-neutral-200 px-4 py-4 text-sm"
+            className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 border-t border-amber-100 px-4 py-4 text-sm"
           >
             <div>
               <div className="flex items-center justify-between gap-3">
-                <p className="font-medium text-neutral-800">{item.issue}</p>
+                <p className="font-medium text-stone-800">{item.issue}</p>
               </div>
 
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-amber-100">
                 <div
-                  className="h-full rounded-full bg-neutral-400"
+                  className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
             </div>
 
-            <p className="text-right font-semibold text-neutral-950">
+            <p className="text-right font-semibold text-stone-950">
               {item.total}
             </p>
 
-            <p className="text-right font-medium text-neutral-600">
+            <p className="text-right font-medium text-stone-600">
               {item.standard}
             </p>
 
-            <p className="text-right font-medium text-neutral-600">
-              {item.kids}
-            </p>
+            <p className="text-right font-medium text-stone-600">{item.kids}</p>
           </div>
         );
       })}
@@ -319,68 +430,73 @@ function WarrantyIssueBars() {
 
 export default function Home() {
   return (
-    <main id="top" className="min-h-screen bg-neutral-100 text-neutral-950">
-      <nav className="sticky top-0 z-50 border-b border-neutral-200 bg-white/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+    <main id="top" className="min-h-screen bg-orange-50 text-stone-950">
+      <nav className="sticky top-0 z-50 border-b border-amber-200 bg-orange-50/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <a href="#top" className="text-sm font-semibold text-neutral-950">
+          <a href="#top" className="text-sm font-semibold text-stone-950">
             Daylight IMS
           </a>
 
           <div className="flex flex-wrap gap-2">
             <a
               href="#office"
-              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
+              className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900 hover:bg-amber-200"
             >
               Office Inventory
             </a>
 
-            <span className="rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-400">
+            <a
+              href="#dcl"
+              className="rounded-full border border-stone-300 bg-stone-100 px-3 py-1 text-sm font-medium text-stone-700 hover:bg-stone-200"
+            >
               DCL Inventory
-            </span>
+            </a>
           </div>
         </div>
       </nav>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-8 rounded-3xl border border-neutral-200 bg-white p-6 shadow-sm">
-          <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+        <header className="mb-8 overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-sm shadow-amber-100/40">
+          <div className="h-2 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500" />
+
+          <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800">
                 Daylight Internal
               </p>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-tight text-neutral-950 sm:text-4xl">
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-stone-950 sm:text-4xl">
                 IMS Dashboard
               </h1>
 
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-500">
                 Internal inventory dashboard with separate Office and DCL
-                inventory views. This mockup currently focuses on the Office
-                IMS Report view while DCL is planned separately.
+                inventory views. This mockup currently focuses on the Office IMS
+                Report view while DCL is planned separately.
               </p>
             </div>
 
-            <div className="rounded-2xl border border-neutral-200 px-4 py-3 text-sm">
-              <p className="font-medium text-neutral-950">Status</p>
-              <p className="mt-1 text-neutral-500">Mock Data · Not Live Yet</p>
+            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
+              <p className="font-medium text-amber-900">Status</p>
+              <p className="mt-1 text-amber-800">Mock Data · Not Live Yet</p>
             </div>
           </div>
         </header>
 
         <section
           id="office"
-          className="scroll-mt-24 rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4 sm:p-6"
+          className="scroll-mt-24 rounded-[2rem] border border-amber-200 bg-amber-50/70 p-4 sm:p-6"
         >
           <div className="mb-6 flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800">
               Office Inventory
             </p>
 
-            <h2 className="text-2xl font-bold tracking-tight text-neutral-950">
+            <h2 className="text-2xl font-bold tracking-tight text-stone-950">
               Office IMS Report View
             </h2>
 
-            <p className="max-w-3xl text-sm leading-6 text-neutral-500">
+            <p className="max-w-3xl text-sm leading-6 text-stone-500">
               This section only represents inventory tracked through the Office
               IMS Report tab, including DC-1 totals, condition status, open box
               grades, accessories, and warranty breakdowns.
@@ -389,7 +505,7 @@ export default function Home() {
 
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-800">
                 Overview
               </h3>
             </div>
@@ -409,13 +525,13 @@ export default function Home() {
 
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-neutral-500">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-800">
                 Inventory Status
               </h3>
             </div>
 
-            <div className="mb-4 rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-600 shadow-sm">
-              <span className="font-medium text-neutral-950">Count logic:</span>{" "}
+            <div className="mb-4 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm text-stone-600 shadow-sm shadow-amber-100/40">
+              <span className="font-medium text-stone-950">Count logic:</span>{" "}
               Total DC-1s = New Units + Warranty + Open Box. Standard/Kids
               splits are shown inside each category.
             </div>
@@ -428,6 +544,7 @@ export default function Home() {
                   total={stat.total}
                   standard={stat.standard}
                   kids={stat.kids}
+                  accent={stat.accent}
                 />
               ))}
             </div>
@@ -445,16 +562,16 @@ export default function Home() {
               title="Accessories"
               description="Quantity-based items currently tracked through the Office IMS."
             >
-              <div className="divide-y divide-neutral-200">
+              <div className="divide-y divide-amber-100">
                 {accessories.map((item) => (
                   <div
                     key={item.name}
                     className="flex items-center justify-between py-3"
                   >
-                    <p className="text-sm font-medium text-neutral-800">
+                    <p className="text-sm font-medium text-stone-800">
                       {item.name}
                     </p>
-                    <p className="text-lg font-semibold text-neutral-950">
+                    <p className="text-lg font-semibold text-stone-950">
                       {item.quantity}
                     </p>
                   </div>
@@ -479,6 +596,38 @@ export default function Home() {
             >
               <WarrantyIssueBars />
             </Section>
+          </div>
+        </section>
+
+        <section
+          id="dcl"
+          className="mt-10 scroll-mt-24 rounded-[2rem] border border-stone-300 bg-stone-100 p-4 sm:p-6"
+        >
+          <div className="mb-6 flex flex-col gap-2">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-700">
+              DCL Inventory
+            </p>
+
+            <h2 className="text-2xl font-bold tracking-tight text-stone-950">
+              DCL / 3PL Inventory View
+            </h2>
+
+            <p className="max-w-3xl text-sm leading-6 text-stone-600">
+              This section is separate from Office inventory and will be shaped
+              differently once the DCL/eFactory data source is ready.
+            </p>
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            {dclStats.map((stat) => (
+              <PlaceholderCard
+                key={stat.label}
+                source={stat.source}
+                label={stat.label}
+                value={stat.value}
+                description={stat.description}
+              />
+            ))}
           </div>
         </section>
       </div>
