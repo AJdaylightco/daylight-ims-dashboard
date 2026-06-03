@@ -440,8 +440,15 @@ export default function Home() {
 
       <nav className="sticky top-0 z-50 border-b border-stone-200 bg-stone-100/85 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <a href="#top" className="text-sm font-semibold text-stone-950">
-            Daylight IMS
+          <a href="#top" className="flex items-center gap-2 text-sm font-semibold text-stone-950">
+            <Image
+              src="/daylight-logo.png"
+              alt="Daylight logo"
+              width={22}
+              height={22}
+              className="h-5 w-5 object-contain"
+            />
+            <span>Daylight IMS</span>
           </a>
 
           <div className="flex flex-wrap gap-2">
@@ -644,4 +651,4 @@ export default function Home() {
       <DaylightLogoBadge />
     </main>
   );
-}git
+}
