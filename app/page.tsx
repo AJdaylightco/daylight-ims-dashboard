@@ -1,7 +1,22 @@
 const overviewStats = [
-  { label: "Total DC-1s", value: 144, description: "All office DC-1 inventory" },
-  { label: "Standard", value: 109, description: "Standard DC-1 units" },
-  { label: "Kids", value: 35, description: "Kids DC-1 units" },
+  {
+    source: "Office",
+    label: "Total DC-1s",
+    value: 144,
+    description: "All office DC-1 inventory",
+  },
+  {
+    source: "Office",
+    label: "Standard",
+    value: 109,
+    description: "Standard DC-1 units",
+  },
+  {
+    source: "Office",
+    label: "Kids",
+    value: 35,
+    description: "Kids DC-1 units",
+  },
 ];
 
 const inventoryStatus = [
@@ -70,66 +85,38 @@ const topWarrantyIssues = [...warrantyBreakdown]
   .sort((a, b) => b.total - a.total)
   .slice(0, 5);
 
-const dclStats = [
-  {
-    label: "DCL Total Units",
-    value: "Pending",
-    description: "Awaiting eFactory API connection",
-  },
-  {
-    label: "DCL Standard",
-    value: "Pending",
-    description: "3PL Standard DC-1 inventory",
-  },
-  {
-    label: "DCL Kids",
-    value: "Pending",
-    description: "3PL Kids DC-1 inventory",
-  },
-];
+const maxWarrantyIssueTotal = Math.max(
+  ...warrantyBreakdown.map((item) => item.total)
+);
 
 function MetricCard({
+  source,
   label,
   value,
   description,
 }: {
+  source?: string;
   label: string;
   value: number;
   description?: string;
 }) {
   return (
     <div className="rounded-2xl border border-neutral-200 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-neutral-500">{label}</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          {source && (
+            <span className="mb-3 inline-flex rounded-full border border-neutral-200 bg-neutral-50 px-2.5 py-1 text-xs font-medium text-neutral-500">
+              {source}
+            </span>
+          )}
 
-      <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
-        {value}
-      </p>
+          <p className="text-sm font-medium text-neutral-500">{label}</p>
 
-      {description && (
-        <p className="mt-3 text-sm leading-5 text-neutral-500">
-          {description}
-        </p>
-      )}
-    </div>
-  );
-}
-
-function PlaceholderCard({
-  label,
-  value,
-  description,
-}: {
-  label: string;
-  value: string;
-  description?: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-dashed border-neutral-300 bg-white p-5 shadow-sm">
-      <p className="text-sm font-medium text-neutral-500">{label}</p>
-
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-neutral-400">
-        {value}
-      </p>
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-neutral-950">
+            {value}
+          </p>
+        </div>
+      </div>
 
       {description && (
         <p className="mt-3 text-sm leading-5 text-neutral-500">
@@ -208,54 +195,6 @@ function Section({
   );
 }
 
-function SmallTable({
-  headers,
-  rows,
-}: {
-  headers: string[];
-  rows: string[][];
-}) {
-  return (
-    <div className="overflow-hidden rounded-2xl border border-neutral-200">
-      <div
-        className="grid bg-neutral-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500"
-        style={{
-          gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))`,
-        }}
-      >
-        {headers.map((header, index) => (
-          <p key={header} className={index === 0 ? "text-left" : "text-right"}>
-            {header}
-          </p>
-        ))}
-      </div>
-
-      {rows.map((row) => (
-        <div
-          key={row.join("-")}
-          className="grid border-t border-neutral-200 px-4 py-3 text-sm"
-          style={{
-            gridTemplateColumns: `repeat(${headers.length}, minmax(0, 1fr))`,
-          }}
-        >
-          {row.map((cell, index) => (
-            <p
-              key={`${cell}-${index}`}
-              className={
-                index === 0
-                  ? "text-left font-medium text-neutral-800"
-                  : "text-right font-semibold text-neutral-950"
-              }
-            >
-              {cell}
-            </p>
-          ))}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function OpenBoxCards() {
   return (
     <div className="grid gap-4 md:grid-cols-3">
@@ -326,6 +265,58 @@ function TopWarrantyIssues() {
   );
 }
 
+function WarrantyIssueBars() {
+  return (
+    <div className="overflow-hidden rounded-2xl border border-neutral-200">
+      <div className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 bg-neutral-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-neutral-500">
+        <p>Issue</p>
+        <p className="text-right">Total</p>
+        <p className="text-right">Standard</p>
+        <p className="text-right">Kids</p>
+      </div>
+
+      {warrantyBreakdown.map((item) => {
+        const barWidth =
+          maxWarrantyIssueTotal > 0
+            ? Math.round((item.total / maxWarrantyIssueTotal) * 100)
+            : 0;
+
+        return (
+          <div
+            key={item.issue}
+            className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 border-t border-neutral-200 px-4 py-4 text-sm"
+          >
+            <div>
+              <div className="flex items-center justify-between gap-3">
+                <p className="font-medium text-neutral-800">{item.issue}</p>
+              </div>
+
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-neutral-100">
+                <div
+                  className="h-full rounded-full bg-neutral-400"
+                  style={{ width: `${barWidth}%` }}
+                />
+              </div>
+            </div>
+
+            <p className="text-right font-semibold text-neutral-950">
+              {item.total}
+            </p>
+
+            <p className="text-right font-medium text-neutral-600">
+              {item.standard}
+            </p>
+
+            <p className="text-right font-medium text-neutral-600">
+              {item.kids}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function Home() {
   return (
     <main id="top" className="min-h-screen bg-neutral-100 text-neutral-950">
@@ -343,12 +334,9 @@ export default function Home() {
               Office Inventory
             </a>
 
-            <a
-              href="#dcl"
-              className="rounded-full border border-neutral-300 px-3 py-1 text-sm font-medium text-neutral-700 hover:bg-neutral-100"
-            >
+            <span className="rounded-full border border-neutral-200 bg-neutral-100 px-3 py-1 text-sm font-medium text-neutral-400">
               DCL Inventory
-            </a>
+            </span>
           </div>
         </div>
       </nav>
@@ -366,9 +354,9 @@ export default function Home() {
               </h1>
 
               <p className="mt-3 max-w-2xl text-sm leading-6 text-neutral-500">
-                Internal inventory dashboard for Office and DCL inventory views.
-                This mockup uses placeholder data while the dashboard layout is
-                being reviewed.
+                Internal inventory dashboard with separate Office and DCL
+                inventory views. This mockup currently focuses on the Office
+                IMS Report view while DCL is planned separately.
               </p>
             </div>
 
@@ -379,8 +367,11 @@ export default function Home() {
           </div>
         </header>
 
-        <section id="office" className="scroll-mt-24">
-          <div className="mb-4 flex flex-col gap-2">
+        <section
+          id="office"
+          className="scroll-mt-24 rounded-[2rem] border border-neutral-200 bg-neutral-50 p-4 sm:p-6"
+        >
+          <div className="mb-6 flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
               Office Inventory
             </p>
@@ -390,8 +381,8 @@ export default function Home() {
             </h2>
 
             <p className="max-w-3xl text-sm leading-6 text-neutral-500">
-              This section represents inventory tracked through the Office IMS
-              Report tab, including DC-1 totals, condition status, open box
+              This section only represents inventory tracked through the Office
+              IMS Report tab, including DC-1 totals, condition status, open box
               grades, accessories, and warranty breakdowns.
             </p>
           </div>
@@ -407,6 +398,7 @@ export default function Home() {
               {overviewStats.map((stat) => (
                 <MetricCard
                   key={stat.label}
+                  source={stat.source}
                   label={stat.label}
                   value={stat.value}
                   description={stat.description}
@@ -451,7 +443,7 @@ export default function Home() {
 
             <Section
               title="Accessories"
-              description="Quantity-based items currently tracked through the IMS."
+              description="Quantity-based items currently tracked through the Office IMS."
             >
               <div className="divide-y divide-neutral-200">
                 {accessories.map((item) => (
@@ -483,60 +475,10 @@ export default function Home() {
           <div className="mt-6">
             <Section
               title="All Warranty Issues"
-              description="Full warranty-condition breakdown by issue type."
+              description="Full warranty-condition breakdown by issue type. Data bars show each issue relative to the highest-count issue."
             >
-              <SmallTable
-                headers={["Issue", "Total", "Standard", "Kids"]}
-                rows={warrantyBreakdown.map((item) => [
-                  item.issue,
-                  String(item.total),
-                  String(item.standard),
-                  String(item.kids),
-                ])}
-              />
+              <WarrantyIssueBars />
             </Section>
-          </div>
-        </section>
-
-        <section id="dcl" className="mt-10 scroll-mt-24">
-          <div className="mb-4 flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-neutral-500">
-              DCL Inventory
-            </p>
-
-            <h2 className="text-2xl font-bold tracking-tight text-neutral-950">
-              DCL / 3PL Inventory View
-            </h2>
-
-            <p className="max-w-3xl text-sm leading-6 text-neutral-500">
-              This section is reserved for DCL inventory. Live values will be
-              connected later through the eFactory API or another agreed data
-              source.
-            </p>
-          </div>
-
-          <div className="grid gap-4 md:grid-cols-3">
-            {dclStats.map((stat) => (
-              <PlaceholderCard
-                key={stat.label}
-                label={stat.label}
-                value={stat.value}
-                description={stat.description}
-              />
-            ))}
-          </div>
-
-          <div className="mt-6 rounded-3xl border border-dashed border-neutral-300 bg-white p-5 shadow-sm">
-            <h3 className="text-lg font-semibold tracking-tight text-neutral-950">
-              DCL Data Placeholder
-            </h3>
-
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-neutral-500">
-              DCL inventory is intentionally separated from Office inventory so
-              each source can be reviewed independently. This section is not
-              connected yet and is included only to show the planned navigation
-              and dashboard structure.
-            </p>
           </div>
         </section>
       </div>
