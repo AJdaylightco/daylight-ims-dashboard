@@ -1,3 +1,5 @@
+import type { ReactNode } from "react";
+
 const overviewStats = [
   {
     source: "Office",
@@ -119,37 +121,21 @@ function getAccentClasses(accent?: string) {
       border: "border-amber-200",
       bg: "bg-amber-50",
       text: "text-amber-800",
-      chip: "bg-amber-50 text-amber-800 border-amber-200",
-      bar: "bg-amber-500",
     };
   }
 
   if (accent === "openbox") {
     return {
-      border: "border-lime-200",
-      bg: "bg-lime-50",
-      text: "text-lime-800",
-      chip: "bg-lime-50 text-lime-800 border-lime-200",
-      bar: "bg-lime-500",
-    };
-  }
-
-  if (accent === "soft") {
-    return {
-      border: "border-stone-200",
-      bg: "bg-stone-50",
-      text: "text-stone-700",
-      chip: "bg-stone-50 text-stone-700 border-stone-200",
-      bar: "bg-stone-400",
+      border: "border-emerald-200",
+      bg: "bg-emerald-50",
+      text: "text-emerald-800",
     };
   }
 
   return {
     border: "border-stone-200",
-    bg: "bg-white",
+    bg: "bg-stone-50",
     text: "text-stone-700",
-    chip: "bg-stone-50 text-stone-700 border-stone-200",
-    bar: "bg-stone-400",
   };
 }
 
@@ -165,7 +151,7 @@ function MetricCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40">
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40 transition-transform duration-200 hover:-translate-y-0.5">
       <div>
         {source && (
           <span className="mb-3 inline-flex rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-medium text-stone-600">
@@ -199,7 +185,7 @@ function PlaceholderCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-5 shadow-sm shadow-stone-200/40">
+    <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-5 shadow-sm shadow-stone-200/40 transition-transform duration-200 hover:-translate-y-0.5">
       {source && (
         <span className="mb-3 inline-flex rounded-full border border-stone-300 bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
           {source}
@@ -236,7 +222,7 @@ function StatusCard({
 
   return (
     <div
-      className={`rounded-2xl border ${accentClasses.border} bg-white p-5 shadow-sm shadow-stone-200/40`}
+      className={`rounded-2xl border ${accentClasses.border} bg-white p-5 shadow-sm shadow-stone-200/40 transition-transform duration-200 hover:-translate-y-0.5`}
     >
       <p className={`text-sm font-medium ${accentClasses.text}`}>{label}</p>
 
@@ -274,7 +260,7 @@ function Section({
 }: {
   title: string;
   description?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40">
@@ -299,9 +285,9 @@ function OpenBoxCards() {
       {openBoxBreakdown.map((item) => (
         <div
           key={item.grade}
-          className="rounded-2xl border border-lime-200 bg-lime-50 p-5"
+          className="rounded-2xl border border-emerald-200 bg-emerald-50 p-5 transition-transform duration-200 hover:-translate-y-0.5"
         >
-          <p className="text-sm font-medium text-lime-800">{item.grade}</p>
+          <p className="text-sm font-medium text-emerald-800">{item.grade}</p>
 
           <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
             {item.total}
@@ -340,7 +326,7 @@ function TopWarrantyIssues() {
       {topWarrantyIssues.map((item, index) => (
         <div
           key={item.issue}
-          className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4 transition-transform duration-200 hover:-translate-y-0.5"
         >
           <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
             #{index + 1}
@@ -391,7 +377,7 @@ function WarrantyIssueBars() {
 
               <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-lime-300 via-amber-400 to-orange-400"
+                  className="h-full rounded-full bg-gradient-to-r from-emerald-300 via-amber-400 to-orange-400"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
@@ -413,10 +399,42 @@ function WarrantyIssueBars() {
   );
 }
 
+function SectionDivider() {
+  return (
+    <div className="my-10 flex items-center gap-4">
+      <div className="h-px flex-1 bg-stone-200" />
+      <div className="rounded-full border border-stone-200 bg-white px-4 py-1.5 text-xs font-medium uppercase tracking-[0.18em] text-stone-500 shadow-sm shadow-stone-200/30">
+        DCL View
+      </div>
+      <div className="h-px flex-1 bg-stone-200" />
+    </div>
+  );
+}
+
+function DaylightBadge() {
+  return (
+    <div className="fixed bottom-4 right-4 z-40 hidden rounded-2xl border border-stone-200 bg-white/90 px-3 py-2 shadow-lg shadow-stone-300/20 backdrop-blur sm:flex sm:items-center sm:gap-2">
+      <div className="relative h-4 w-4">
+        <div className="absolute inset-0 rounded-full bg-amber-300" />
+        <div className="absolute inset-[3px] rounded-full bg-white" />
+      </div>
+      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-stone-600">
+        Daylight
+      </span>
+    </div>
+  );
+}
+
 export default function Home() {
   return (
-    <main id="top" className="min-h-screen bg-stone-100 text-stone-950">
-      <nav className="sticky top-0 z-50 border-b border-stone-200 bg-stone-100/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+    <main id="top" className="relative min-h-screen bg-stone-100 text-stone-950">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
+        <div className="absolute -left-28 top-0 h-80 w-80 rounded-full bg-amber-200/30 blur-3xl" />
+        <div className="absolute right-0 top-1/3 h-72 w-72 rounded-full bg-emerald-200/20 blur-3xl" />
+        <div className="absolute bottom-0 left-1/3 h-80 w-80 rounded-full bg-orange-200/20 blur-3xl" />
+      </div>
+
+      <nav className="sticky top-0 z-50 border-b border-stone-200 bg-stone-100/85 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <a href="#top" className="text-sm font-semibold text-stone-950">
             Daylight IMS
@@ -442,7 +460,7 @@ export default function Home() {
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
         <header className="mb-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm shadow-stone-200/40">
-          <div className="h-2 bg-gradient-to-r from-lime-200 via-amber-200 to-orange-200" />
+          <div className="h-2 bg-gradient-to-r from-emerald-200 via-amber-200 to-orange-200" />
 
           <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -470,7 +488,7 @@ export default function Home() {
 
         <section
           id="office"
-          className="scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50 p-4 sm:p-6"
+          className="scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50/95 p-4 shadow-sm shadow-stone-200/30 sm:p-6"
         >
           <div className="mb-6 flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
@@ -584,9 +602,11 @@ export default function Home() {
           </div>
         </section>
 
+        <SectionDivider />
+
         <section
           id="dcl"
-          className="mt-10 scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50 p-4 sm:p-6"
+          className="scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50/95 p-4 shadow-sm shadow-stone-200/30 sm:p-6"
         >
           <div className="mb-6 flex flex-col gap-2">
             <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
@@ -616,6 +636,8 @@ export default function Home() {
           </div>
         </section>
       </div>
+
+      <DaylightBadge />
     </main>
   );
 }
