@@ -25,21 +25,21 @@ const inventoryStatus = [
     total: 25,
     standard: 15,
     kids: 10,
-    accent: "gold",
+    accent: "soft",
   },
   {
     label: "Warranty",
     total: 75,
     standard: 75,
     kids: 0,
-    accent: "orange",
+    accent: "warranty",
   },
   {
     label: "Open Box",
     total: 44,
     standard: 19,
     kids: 25,
-    accent: "clay",
+    accent: "openbox",
   },
 ];
 
@@ -114,47 +114,33 @@ const dclStats = [
 ];
 
 function getAccentClasses(accent?: string) {
-  if (accent === "gold") {
+  if (accent === "warranty") {
     return {
-      border: "border-yellow-200",
-      bg: "bg-yellow-50",
-      text: "text-yellow-800",
-      softText: "text-yellow-700",
-      bar: "bg-yellow-500",
-      chip: "bg-yellow-100 text-yellow-800 border-yellow-200",
+      border: "border-amber-200",
+      bg: "bg-amber-50",
+      text: "text-amber-800",
+      chip: "bg-amber-50 text-amber-800 border-amber-200",
+      bar: "bg-amber-500",
     };
   }
 
-  if (accent === "orange") {
+  if (accent === "openbox") {
     return {
-      border: "border-orange-200",
-      bg: "bg-orange-50",
-      text: "text-orange-800",
-      softText: "text-orange-700",
-      bar: "bg-orange-500",
-      chip: "bg-orange-100 text-orange-800 border-orange-200",
+      border: "border-lime-200",
+      bg: "bg-lime-50",
+      text: "text-lime-800",
+      chip: "bg-lime-50 text-lime-800 border-lime-200",
+      bar: "bg-lime-500",
     };
   }
 
-  if (accent === "clay") {
+  if (accent === "soft") {
     return {
-      border: "border-stone-300",
-      bg: "bg-stone-100",
-      text: "text-stone-800",
-      softText: "text-stone-700",
-      bar: "bg-stone-500",
-      chip: "bg-stone-100 text-stone-800 border-stone-300",
-    };
-  }
-
-  if (accent === "brown") {
-    return {
-      border: "border-amber-300",
-      bg: "bg-amber-100",
-      text: "text-amber-900",
-      softText: "text-amber-800",
-      bar: "bg-amber-700",
-      chip: "bg-amber-100 text-amber-900 border-amber-300",
+      border: "border-stone-200",
+      bg: "bg-stone-50",
+      text: "text-stone-700",
+      chip: "bg-stone-50 text-stone-700 border-stone-200",
+      bar: "bg-stone-400",
     };
   }
 
@@ -162,9 +148,8 @@ function getAccentClasses(accent?: string) {
     border: "border-stone-200",
     bg: "bg-white",
     text: "text-stone-700",
-    softText: "text-stone-600",
-    bar: "bg-stone-500",
     chip: "bg-stone-50 text-stone-700 border-stone-200",
+    bar: "bg-stone-400",
   };
 }
 
@@ -180,10 +165,10 @@ function MetricCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-amber-200 bg-white p-5 shadow-sm shadow-amber-100/40">
+    <div className="rounded-2xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40">
       <div>
         {source && (
-          <span className="mb-3 inline-flex rounded-full border border-amber-200 bg-amber-50 px-2.5 py-1 text-xs font-medium text-amber-800">
+          <span className="mb-3 inline-flex rounded-full border border-stone-200 bg-stone-50 px-2.5 py-1 text-xs font-medium text-stone-600">
             {source}
           </span>
         )}
@@ -214,16 +199,16 @@ function PlaceholderCard({
   description?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-dashed border-amber-300 bg-white p-5 shadow-sm shadow-amber-100/40">
+    <div className="rounded-2xl border border-dashed border-stone-300 bg-white p-5 shadow-sm shadow-stone-200/40">
       {source && (
-        <span className="mb-3 inline-flex rounded-full border border-amber-300 bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-900">
+        <span className="mb-3 inline-flex rounded-full border border-stone-300 bg-stone-100 px-2.5 py-1 text-xs font-medium text-stone-700">
           {source}
         </span>
       )}
 
       <p className="text-sm font-medium text-stone-500">{label}</p>
 
-      <p className="mt-3 text-3xl font-semibold tracking-tight text-amber-800">
+      <p className="mt-3 text-3xl font-semibold tracking-tight text-stone-500">
         {value}
       </p>
 
@@ -251,7 +236,7 @@ function StatusCard({
 
   return (
     <div
-      className={`rounded-2xl border ${accentClasses.border} bg-white p-5 shadow-sm shadow-amber-100/40`}
+      className={`rounded-2xl border ${accentClasses.border} bg-white p-5 shadow-sm shadow-stone-200/40`}
     >
       <p className={`text-sm font-medium ${accentClasses.text}`}>{label}</p>
 
@@ -292,8 +277,8 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-3xl border border-amber-200 bg-white p-5 shadow-sm shadow-amber-100/40">
-      <div className="border-b border-amber-100 pb-4">
+    <section className="rounded-3xl border border-stone-200 bg-white p-5 shadow-sm shadow-stone-200/40">
+      <div className="border-b border-stone-100 pb-4">
         <h2 className="text-lg font-semibold tracking-tight text-stone-950">
           {title}
         </h2>
@@ -314,9 +299,9 @@ function OpenBoxCards() {
       {openBoxBreakdown.map((item) => (
         <div
           key={item.grade}
-          className="rounded-2xl border border-stone-300 bg-stone-100 p-5"
+          className="rounded-2xl border border-lime-200 bg-lime-50 p-5"
         >
-          <p className="text-sm font-medium text-stone-800">{item.grade}</p>
+          <p className="text-sm font-medium text-lime-800">{item.grade}</p>
 
           <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
             {item.total}
@@ -355,9 +340,9 @@ function TopWarrantyIssues() {
       {topWarrantyIssues.map((item, index) => (
         <div
           key={item.issue}
-          className="rounded-2xl border border-orange-200 bg-orange-50 p-4"
+          className="rounded-2xl border border-amber-200 bg-amber-50 p-4"
         >
-          <p className="text-xs font-semibold uppercase tracking-wide text-orange-700">
+          <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">
             #{index + 1}
           </p>
 
@@ -380,8 +365,8 @@ function TopWarrantyIssues() {
 
 function WarrantyIssueBars() {
   return (
-    <div className="overflow-hidden rounded-2xl border border-amber-200">
-      <div className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 bg-amber-50 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-amber-800">
+    <div className="overflow-hidden rounded-2xl border border-stone-200">
+      <div className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 bg-stone-100 px-4 py-3 text-xs font-semibold uppercase tracking-wide text-stone-600">
         <p>Issue</p>
         <p className="text-right">Total</p>
         <p className="text-right">Standard</p>
@@ -397,16 +382,16 @@ function WarrantyIssueBars() {
         return (
           <div
             key={item.issue}
-            className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 border-t border-amber-100 px-4 py-4 text-sm"
+            className="grid grid-cols-[1.6fr_0.5fr_0.5fr_0.5fr] gap-3 border-t border-stone-100 px-4 py-4 text-sm"
           >
             <div>
               <div className="flex items-center justify-between gap-3">
                 <p className="font-medium text-stone-800">{item.issue}</p>
               </div>
 
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-amber-100">
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-yellow-400 via-amber-500 to-orange-500"
+                  className="h-full rounded-full bg-gradient-to-r from-lime-300 via-amber-400 to-orange-400"
                   style={{ width: `${barWidth}%` }}
                 />
               </div>
@@ -430,8 +415,8 @@ function WarrantyIssueBars() {
 
 export default function Home() {
   return (
-    <main id="top" className="min-h-screen bg-orange-50 text-stone-950">
-      <nav className="sticky top-0 z-50 border-b border-amber-200 bg-orange-50/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
+    <main id="top" className="min-h-screen bg-stone-100 text-stone-950">
+      <nav className="sticky top-0 z-50 border-b border-stone-200 bg-stone-100/90 px-4 py-3 backdrop-blur sm:px-6 lg:px-8">
         <div className="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <a href="#top" className="text-sm font-semibold text-stone-950">
             Daylight IMS
@@ -440,14 +425,14 @@ export default function Home() {
           <div className="flex flex-wrap gap-2">
             <a
               href="#office"
-              className="rounded-full border border-amber-300 bg-amber-100 px-3 py-1 text-sm font-medium text-amber-900 hover:bg-amber-200"
+              className="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               Office Inventory
             </a>
 
             <a
               href="#dcl"
-              className="rounded-full border border-stone-300 bg-stone-100 px-3 py-1 text-sm font-medium text-stone-700 hover:bg-stone-200"
+              className="rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700 hover:bg-stone-50"
             >
               DCL Inventory
             </a>
@@ -456,12 +441,12 @@ export default function Home() {
       </nav>
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
-        <header className="mb-8 overflow-hidden rounded-3xl border border-amber-200 bg-white shadow-sm shadow-amber-100/40">
-          <div className="h-2 bg-gradient-to-r from-yellow-300 via-amber-400 to-orange-500" />
+        <header className="mb-8 overflow-hidden rounded-3xl border border-stone-200 bg-white shadow-sm shadow-stone-200/40">
+          <div className="h-2 bg-gradient-to-r from-lime-200 via-amber-200 to-orange-200" />
 
           <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800">
+              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
                 Daylight Internal
               </p>
 
@@ -476,19 +461,19 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm">
-              <p className="font-medium text-amber-900">Status</p>
-              <p className="mt-1 text-amber-800">Mock Data · Not Live Yet</p>
+            <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3 text-sm">
+              <p className="font-medium text-stone-950">Status</p>
+              <p className="mt-1 text-stone-500">Mock Data · Not Live Yet</p>
             </div>
           </div>
         </header>
 
         <section
           id="office"
-          className="scroll-mt-24 rounded-[2rem] border border-amber-200 bg-amber-50/70 p-4 sm:p-6"
+          className="scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50 p-4 sm:p-6"
         >
           <div className="mb-6 flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-amber-800">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
               Office Inventory
             </p>
 
@@ -505,7 +490,7 @@ export default function Home() {
 
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-800">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
                 Overview
               </h3>
             </div>
@@ -525,12 +510,12 @@ export default function Home() {
 
           <section className="mb-6">
             <div className="mb-3 flex items-center justify-between">
-              <h3 className="text-sm font-semibold uppercase tracking-wide text-amber-800">
+              <h3 className="text-sm font-semibold uppercase tracking-wide text-stone-500">
                 Inventory Status
               </h3>
             </div>
 
-            <div className="mb-4 rounded-2xl border border-amber-200 bg-white px-4 py-3 text-sm text-stone-600 shadow-sm shadow-amber-100/40">
+            <div className="mb-4 rounded-2xl border border-stone-200 bg-white px-4 py-3 text-sm text-stone-600 shadow-sm shadow-stone-200/40">
               <span className="font-medium text-stone-950">Count logic:</span>{" "}
               Total DC-1s = New Units + Warranty + Open Box. Standard/Kids
               splits are shown inside each category.
@@ -562,7 +547,7 @@ export default function Home() {
               title="Accessories"
               description="Quantity-based items currently tracked through the Office IMS."
             >
-              <div className="divide-y divide-amber-100">
+              <div className="divide-y divide-stone-100">
                 {accessories.map((item) => (
                   <div
                     key={item.name}
@@ -601,10 +586,10 @@ export default function Home() {
 
         <section
           id="dcl"
-          className="mt-10 scroll-mt-24 rounded-[2rem] border border-stone-300 bg-stone-100 p-4 sm:p-6"
+          className="mt-10 scroll-mt-24 rounded-[2rem] border border-stone-200 bg-stone-50 p-4 sm:p-6"
         >
           <div className="mb-6 flex flex-col gap-2">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-700">
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-stone-500">
               DCL Inventory
             </p>
 
@@ -612,7 +597,7 @@ export default function Home() {
               DCL / 3PL Inventory View
             </h2>
 
-            <p className="max-w-3xl text-sm leading-6 text-stone-600">
+            <p className="max-w-3xl text-sm leading-6 text-stone-500">
               This section is separate from Office inventory and will be shaped
               differently once the DCL/eFactory data source is ready.
             </p>
