@@ -33,6 +33,11 @@ type DclItem = {
   quantity: number;
 };
 
+type CreakDefinition = {
+  label: string;
+  description: string;
+};
+
 const overviewStats: Stat[] = [
   {
     label: "Total DC-1s",
@@ -348,6 +353,21 @@ const dclInventory: DclItem[] = [
   },
 ];
 
+const creakDefinitions: CreakDefinition[] = [
+  {
+    label: "VIP",
+    description: "Minimum to no creak.",
+  },
+  {
+    label: "Sellable",
+    description: "Slight creak, still customer-ready.",
+  },
+  {
+    label: "Warranty",
+    description: "Significant creak; does not meet customer-ready standards.",
+  },
+];
+
 const dclOpenBox = 237;
 
 const topWarrantyIssues = [...warrantyIssues]
@@ -392,42 +412,6 @@ function Card({
   );
 }
 
-function CreakDefinitionsButton() {
-  return (
-    <details className="group relative">
-      <summary className="flex h-6 w-6 cursor-pointer list-none items-center justify-center rounded-full border border-stone-300 bg-white text-xs font-bold text-stone-600 shadow-sm transition hover:bg-stone-50 [&::-webkit-details-marker]:hidden">
-        <span aria-hidden="true">i</span>
-        <span className="sr-only">Open creak grade definitions</span>
-      </summary>
-
-      <div className="absolute right-0 top-8 z-30 w-[min(18rem,calc(100vw-3rem))] rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-xl">
-        <p className="text-sm font-semibold text-stone-950">
-          Creak Grade Definitions
-        </p>
-
-        <div className="mt-3 space-y-2 text-xs leading-5 text-stone-600">
-          <div>
-            <span className="font-semibold text-stone-900">VIP:</span> minimum
-            to no creak.
-          </div>
-          <div>
-            <span className="font-semibold text-stone-900">Sellable:</span>{" "}
-            slight creak, still customer-ready.
-          </div>
-          <div>
-            <span className="font-semibold text-stone-900">Warranty:</span>{" "}
-            significant creak; does not meet customer-ready standards.
-          </div>
-        </div>
-
-        <p className="mt-3 text-[11px] text-stone-400">
-          Tap the icon again to close.
-        </p>
-      </div>
-    </details>
-  );
-}
-
 function SectionHeader({
   eyebrow,
   title,
@@ -449,6 +433,37 @@ function SectionHeader({
         {description}
       </p>
     </div>
+  );
+}
+
+function CreakInfoButton() {
+  return (
+    <details className="group relative">
+      <summary className="flex h-6 w-6 cursor-pointer list-none items-center justify-center rounded-full border border-stone-300 bg-white text-[11px] font-bold text-stone-600 shadow-sm transition hover:bg-stone-50 [&::-webkit-details-marker]:hidden">
+        i
+      </summary>
+
+      <div className="absolute right-0 top-8 z-30 w-[min(18rem,calc(100vw-3rem))] rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-xl">
+        <p className="text-sm font-semibold text-stone-950">
+          Creak Grade Definitions
+        </p>
+
+        <div className="mt-3 space-y-2 text-xs leading-5 text-stone-600">
+          {creakDefinitions.map((definition) => (
+            <p key={definition.label}>
+              <span className="font-semibold text-stone-900">
+                {definition.label}:
+              </span>{" "}
+              {definition.description}
+            </p>
+          ))}
+        </div>
+
+        <p className="mt-3 text-[11px] text-stone-400">
+          Tap the icon again to close.
+        </p>
+      </div>
+    </details>
   );
 }
 
@@ -564,7 +579,7 @@ function OverviewCards() {
 }
 
 function InventoryStatusCard({ item }: { item: InventoryStatus }) {
-  const shouldShowCreakInfo = item.label === "Open Box";
+  const showCreakInfo = item.label === "Open Box";
 
   return (
     <Card>
@@ -572,7 +587,7 @@ function InventoryStatusCard({ item }: { item: InventoryStatus }) {
         <div>
           <div className="flex items-center gap-2">
             <p className="text-sm font-semibold text-stone-950">{item.label}</p>
-            {shouldShowCreakInfo && <CreakDefinitionsButton />}
+            {showCreakInfo && <CreakInfoButton />}
           </div>
 
           <p className="mt-1 text-xs leading-5 text-stone-500">{item.note}</p>
@@ -610,6 +625,7 @@ function InventoryStatusGrid({
   return (
     <div>
       <h3 className="mb-3 text-lg font-semibold text-stone-950">{title}</h3>
+
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         {items.map((item) => (
           <InventoryStatusCard key={item.label} item={item} />
