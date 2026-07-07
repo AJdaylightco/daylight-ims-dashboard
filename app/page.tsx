@@ -18,7 +18,6 @@ type InventoryStatus = {
 type SimpleCount = {
   label: string;
   value: number;
-  note?: string;
 };
 
 type WarrantyIssue = {
@@ -26,6 +25,12 @@ type WarrantyIssue = {
   total: number;
   standard: number;
   kids: number;
+};
+
+type DclItem = {
+  sku: string;
+  description: string;
+  quantity: number;
 };
 
 const overviewStats: Stat[] = [
@@ -63,9 +68,9 @@ const inventoryStatus: InventoryStatus[] = [
   },
   {
     label: "Open Box",
-    total: 44,
+    total: 40,
     standard: 19,
-    kids: 25,
+    kids: 21,
     note: "VIP, Sellable, or Warranty Grade",
   },
 ];
@@ -73,23 +78,23 @@ const inventoryStatus: InventoryStatus[] = [
 const openBoxBreakdown: InventoryStatus[] = [
   {
     label: "VIP",
-    total: 8,
+    total: 10,
     standard: 5,
-    kids: 3,
+    kids: 5,
     note: "Best open-box condition",
   },
   {
     label: "Sellable",
-    total: 27,
-    standard: 21,
-    kids: 6,
+    total: 20,
+    standard: 11,
+    kids: 9,
     note: "Good open-box units",
   },
   {
     label: "Warranty Grade",
-    total: 9,
-    standard: 7,
-    kids: 2,
+    total: 10,
+    standard: 3,
+    kids: 7,
     note: "Open box but warranty grade",
   },
 ];
@@ -116,7 +121,7 @@ const accessories: SimpleCount[] = [
     value: 4,
   },
   {
-    label: "Wood Lightbulb Fixture",
+    label: "Wood Lamp Fixture",
     value: 10,
   },
   {
@@ -146,12 +151,6 @@ const accessories: SimpleCount[] = [
 ];
 
 const warrantyIssues: WarrantyIssue[] = [
-  {
-    label: "N/A",
-    total: 13,
-    standard: 13,
-    kids: 0,
-  },
   {
     label: "Anti-glare film peeling",
     total: 9,
@@ -256,10 +255,117 @@ const warrantyIssues: WarrantyIssue[] = [
   },
 ];
 
+const dclInventory: DclItem[] = [
+  {
+    sku: "1",
+    description: "Daylight DC-1",
+    quantity: 435,
+  },
+  {
+    sku: "7",
+    description: "Daylight Kids",
+    quantity: 850,
+  },
+  {
+    sku: "23",
+    description: "Daylight Sling",
+    quantity: 664,
+  },
+  {
+    sku: "28",
+    description: "Daylight Comfy Sleeve",
+    quantity: 434,
+  },
+  {
+    sku: "29",
+    description: "LAMY Pen",
+    quantity: 269,
+  },
+  {
+    sku: "30",
+    description: "Kids Stylus",
+    quantity: 244,
+  },
+  {
+    sku: "31",
+    description: "Daylight Kids Case",
+    quantity: 356,
+  },
+  {
+    sku: "34-",
+    description: "Daylight Stand",
+    quantity: 500,
+  },
+  {
+    sku: "35-",
+    description: "Daylight Keyboard",
+    quantity: 928,
+  },
+  {
+    sku: "36-",
+    description: "Small Incandescent Light Bulb (T45 6 pack)",
+    quantity: 0,
+  },
+  {
+    sku: "37-",
+    description: "Large Incandescent Light Bulb (ST64 4 pack)",
+    quantity: 2520,
+  },
+  {
+    sku: "38-",
+    description: "Kids Night Light",
+    quantity: 0,
+  },
+  {
+    sku: "40",
+    description: "Wooden Light Fixture",
+    quantity: 840,
+  },
+  {
+    sku: "41",
+    description: "Red Incandescent Bulb (G80, 3 pack)",
+    quantity: 2950,
+  },
+  {
+    sku: "37-1",
+    description: "incandescent light. ST64. 40W",
+    quantity: 3406,
+  },
+  {
+    sku: "37-2",
+    description: "incandescent light. ST64. 60W",
+    quantity: 1419,
+  },
+  {
+    sku: "36-1",
+    description: "incandescent light. T45. 25W",
+    quantity: 1461,
+  },
+  {
+    sku: "32",
+    description: "Daylight Keyboard Case",
+    quantity: -221,
+  },
+];
+
+const dclOpenBox = 237;
+
 const topWarrantyIssues = [...warrantyIssues]
   .filter((issue) => issue.total > 0)
   .sort((a, b) => b.total - a.total)
   .slice(0, 5);
+
+const dclStandardUnits =
+  dclInventory.find((item) => item.sku === "1")?.quantity ?? 0;
+
+const dclKidsUnits =
+  dclInventory.find((item) => item.sku === "7")?.quantity ?? 0;
+
+const dclTotalUnits = dclStandardUnits + dclKidsUnits + dclOpenBox;
+
+function formatNumber(value: number) {
+  return new Intl.NumberFormat("en-US").format(value);
+}
 
 function Card({
   children,
@@ -380,8 +486,8 @@ function Hero() {
 
           <p className="mt-4 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
             Mobile-first inventory dashboard for Office and DCL tracking.
-            Built to quickly check sellable units, warranty units, open box
-            status, accessories, and operational inventory health.
+            Office is the detailed IMS view. DCL mirrors the simple Report tab
+            inventory table.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -479,7 +585,7 @@ function AccessoriesSection() {
         <div>
           <h3 className="text-lg font-semibold text-stone-950">Accessories</h3>
           <p className="mt-1 text-sm text-stone-500">
-            Quantity-based accessory inventory.
+            Quantity-based office accessory inventory.
           </p>
         </div>
 
@@ -610,6 +716,95 @@ function OfficeInventorySection() {
   );
 }
 
+function DclSummaryCards() {
+  const cards = [
+    {
+      label: "Daylight DC-1",
+      value: dclStandardUnits,
+      note: "SKU 1",
+    },
+    {
+      label: "Daylight Kids",
+      value: dclKidsUnits,
+      note: "SKU 7",
+    },
+    {
+      label: "Open_Box",
+      value: dclOpenBox,
+      note: "DCL open box count",
+    },
+    {
+      label: "Total Units",
+      value: dclTotalUnits,
+      note: "DC-1 + Kids + Open_Box",
+    },
+  ];
+
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      {cards.map((card) => (
+        <Card key={card.label}>
+          <p className="text-sm font-medium text-stone-500">{card.label}</p>
+          <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
+            {formatNumber(card.value)}
+          </p>
+          <p className="mt-2 text-sm leading-5 text-stone-500">{card.note}</p>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function DclInventoryTable() {
+  return (
+    <Card>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-stone-950">
+          DCL SKU Inventory
+        </h3>
+        <p className="mt-1 text-sm text-stone-500">
+          Mirrors the simple DCL table from the Report tab.
+        </p>
+      </div>
+
+      <div className="overflow-hidden rounded-2xl border border-stone-200">
+        <div className="grid grid-cols-[0.75fr_2fr_1fr] bg-stone-100 px-3 py-3 text-xs font-semibold uppercase tracking-wide text-stone-500">
+          <div>SKU</div>
+          <div>Description</div>
+          <div className="text-right">Quantity</div>
+        </div>
+
+        <div className="divide-y divide-stone-200 bg-white">
+          {dclInventory.map((item) => (
+            <div
+              key={`${item.sku}-${item.description}`}
+              className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 px-3 py-3 text-sm"
+            >
+              <div className="font-medium text-stone-700">{item.sku}</div>
+              <div className="leading-5 text-stone-700">{item.description}</div>
+              <div
+                className={`text-right font-semibold ${
+                  item.quantity < 0 ? "text-red-700" : "text-stone-950"
+                }`}
+              >
+                {formatNumber(item.quantity)}
+              </div>
+            </div>
+          ))}
+
+          <div className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 bg-amber-50 px-3 py-3 text-sm">
+            <div className="font-semibold text-stone-900">Open_Box</div>
+            <div className="text-stone-600">DCL open box inventory</div>
+            <div className="text-right font-semibold text-stone-950">
+              {formatNumber(dclOpenBox)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Card>
+  );
+}
+
 function DclInventorySection() {
   return (
     <section id="dcl" className="scroll-mt-24 py-8 pb-28 sm:py-12 md:pb-12">
@@ -618,33 +813,13 @@ function DclInventorySection() {
       <SectionHeader
         eyebrow="DCL"
         title="DCL Inventory"
-        description="Separate space for warehouse inventory. This is ready for future DCL/eFactory data once we connect live reporting."
+        description="Simple DCL inventory view based on the right side of the Report tab: SKU, description, and quantity."
       />
 
-      <Card>
-        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <p className="text-sm font-semibold text-stone-950">
-              DCL dashboard placeholder
-            </p>
-            <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
-              This section is intentionally separate from Office Inventory.
-              Later we can add DCL monthly totals, sellable inventory, open box,
-              warehouse counts, eFactory exports, and historical end-of-month
-              snapshots.
-            </p>
-          </div>
-
-          <div className="rounded-3xl bg-stone-100 p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-stone-500">
-              Status
-            </p>
-            <p className="mt-2 text-2xl font-semibold text-stone-950">
-              Not connected yet
-            </p>
-          </div>
-        </div>
-      </Card>
+      <div className="space-y-5">
+        <DclSummaryCards />
+        <DclInventoryTable />
+      </div>
     </section>
   );
 }
