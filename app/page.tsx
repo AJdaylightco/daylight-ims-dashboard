@@ -638,17 +638,11 @@ function InventoryStatusGrid({
 function AccessoriesSection() {
   return (
     <Card>
-      <div className="mb-4 flex items-end justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-semibold text-stone-950">Accessories</h3>
-          <p className="mt-1 text-sm text-stone-500">
-            Quantity-based office accessory inventory.
-          </p>
-        </div>
-
-        <span className="rounded-full bg-stone-100 px-3 py-1 text-xs font-semibold text-stone-600">
-          A11:B22
-        </span>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold text-stone-950">Accessories</h3>
+        <p className="mt-1 text-sm text-stone-500">
+          Quantity-based office accessory inventory.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
