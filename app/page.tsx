@@ -723,6 +723,11 @@ function OfficeInventorySection() {
 function DclSummaryCards() {
   const cards = [
     {
+      label: "Total Units",
+      value: dclTotalUnits,
+      note: "DC-1 + Kids + Open_Box",
+    },
+    {
       label: "Daylight DC-1",
       value: dclStandardUnits,
       note: "SKU 1",
@@ -736,11 +741,6 @@ function DclSummaryCards() {
       label: "Open_Box",
       value: dclOpenBox,
       note: "DCL open box count",
-    },
-    {
-      label: "Total Units",
-      value: dclTotalUnits,
-      note: "DC-1 + Kids + Open_Box",
     },
   ];
 
@@ -810,7 +810,7 @@ function DclInventorySection() {
       <SectionHeader
         eyebrow="DCL"
         title="DCL Inventory"
-        description="Simple DCL view based on the right side of the Report tab. Units stay in the top cards, and accessories stay in the SKU table."
+        description="Simple DCL view based on the right side of the Report tab. Total units are shown first, with accessories in the SKU table."
       />
 
       <div className="space-y-5">
