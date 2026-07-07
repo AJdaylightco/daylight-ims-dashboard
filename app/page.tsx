@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+\import type { ReactNode } from "react";
 import Image from "next/image";
 
 type Stat = {
@@ -81,21 +81,21 @@ const openBoxBreakdown: InventoryStatus[] = [
     total: 10,
     standard: 5,
     kids: 5,
-    note: "Best open-box condition",
+    note: "Minimum to no creak",
   },
   {
     label: "Sellable",
     total: 20,
     standard: 11,
     kids: 9,
-    note: "Good open-box units",
+    note: "Slight creak, still customer-ready",
   },
   {
     label: "Warranty Grade",
     total: 10,
     standard: 3,
     kids: 7,
-    note: "Open box but warranty grade",
+    note: "Significant creak; not customer-ready",
   },
 ];
 
@@ -392,6 +392,42 @@ function Card({
   );
 }
 
+function CreakDefinitionsButton() {
+  return (
+    <details className="group relative">
+      <summary className="flex h-6 w-6 cursor-pointer list-none items-center justify-center rounded-full border border-stone-300 bg-white text-xs font-bold text-stone-600 shadow-sm transition hover:bg-stone-50 [&::-webkit-details-marker]:hidden">
+        <span aria-hidden="true">i</span>
+        <span className="sr-only">Open creak grade definitions</span>
+      </summary>
+
+      <div className="absolute right-0 top-8 z-30 w-[min(18rem,calc(100vw-3rem))] rounded-2xl border border-stone-200 bg-white p-4 text-left shadow-xl">
+        <p className="text-sm font-semibold text-stone-950">
+          Creak Grade Definitions
+        </p>
+
+        <div className="mt-3 space-y-2 text-xs leading-5 text-stone-600">
+          <div>
+            <span className="font-semibold text-stone-900">VIP:</span> minimum
+            to no creak.
+          </div>
+          <div>
+            <span className="font-semibold text-stone-900">Sellable:</span>{" "}
+            slight creak, still customer-ready.
+          </div>
+          <div>
+            <span className="font-semibold text-stone-900">Warranty:</span>{" "}
+            significant creak; does not meet customer-ready standards.
+          </div>
+        </div>
+
+        <p className="mt-3 text-[11px] text-stone-400">
+          Tap the icon again to close.
+        </p>
+      </div>
+    </details>
+  );
+}
+
 function SectionHeader({
   eyebrow,
   title,
@@ -528,11 +564,17 @@ function OverviewCards() {
 }
 
 function InventoryStatusCard({ item }: { item: InventoryStatus }) {
+  const shouldShowCreakInfo = item.label === "Open Box";
+
   return (
     <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-sm font-semibold text-stone-950">{item.label}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold text-stone-950">{item.label}</p>
+            {shouldShowCreakInfo && <CreakDefinitionsButton />}
+          </div>
+
           <p className="mt-1 text-xs leading-5 text-stone-500">{item.note}</p>
         </div>
 
