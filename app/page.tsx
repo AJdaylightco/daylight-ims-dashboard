@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+\import type { ReactNode } from "react";
 import Image from "next/image";
 
 type Stat = {
@@ -363,6 +363,10 @@ const dclKidsUnits =
 
 const dclTotalUnits = dclStandardUnits + dclKidsUnits + dclOpenBox;
 
+const dclAccessoryInventory = dclInventory.filter(
+  (item) => item.sku !== "1" && item.sku !== "7"
+);
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
@@ -486,8 +490,8 @@ function Hero() {
 
           <p className="mt-4 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
             Mobile-first inventory dashboard for Office and DCL tracking.
-            Office is the detailed IMS view. DCL mirrors the simple Report tab
-            inventory table.
+            Office is the detailed IMS view. DCL keeps device units in summary
+            cards and accessories in a simple SKU table.
           </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -755,15 +759,16 @@ function DclSummaryCards() {
   );
 }
 
-function DclInventoryTable() {
+function DclAccessoriesTable() {
   return (
     <Card>
       <div className="mb-4">
         <h3 className="text-lg font-semibold text-stone-950">
-          DCL SKU Inventory
+          DCL Accessories
         </h3>
         <p className="mt-1 text-sm text-stone-500">
-          Mirrors the simple DCL table from the Report tab.
+          SKU, description, and quantity for DCL accessories and non-device
+          inventory.
         </p>
       </div>
 
@@ -775,7 +780,7 @@ function DclInventoryTable() {
         </div>
 
         <div className="divide-y divide-stone-200 bg-white">
-          {dclInventory.map((item) => (
+          {dclAccessoryInventory.map((item) => (
             <div
               key={`${item.sku}-${item.description}`}
               className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 px-3 py-3 text-sm"
@@ -791,14 +796,6 @@ function DclInventoryTable() {
               </div>
             </div>
           ))}
-
-          <div className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 bg-amber-50 px-3 py-3 text-sm">
-            <div className="font-semibold text-stone-900">Open_Box</div>
-            <div className="text-stone-600">DCL open box inventory</div>
-            <div className="text-right font-semibold text-stone-950">
-              {formatNumber(dclOpenBox)}
-            </div>
-          </div>
         </div>
       </div>
     </Card>
@@ -813,12 +810,12 @@ function DclInventorySection() {
       <SectionHeader
         eyebrow="DCL"
         title="DCL Inventory"
-        description="Simple DCL inventory view based on the right side of the Report tab: SKU, description, and quantity."
+        description="Simple DCL view based on the right side of the Report tab. Units stay in the top cards, and accessories stay in the SKU table."
       />
 
       <div className="space-y-5">
         <DclSummaryCards />
-        <DclInventoryTable />
+        <DclAccessoriesTable />
       </div>
     </section>
   );
