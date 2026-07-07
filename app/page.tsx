@@ -367,6 +367,11 @@ const dclAccessoryInventory = dclInventory.filter(
   (item) => item.sku !== "1" && item.sku !== "7"
 );
 
+const maxDclAccessoryQuantity = Math.max(
+  ...dclAccessoryInventory.map((item) => Math.abs(item.quantity)),
+  1
+);
+
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
 }
@@ -759,6 +764,24 @@ function DclSummaryCards() {
   );
 }
 
+function DclAccessorySparkline({ quantity }: { quantity: number }) {
+  const width =
+    quantity === 0
+      ? 0
+      : Math.max(4, Math.round((Math.abs(quantity) / maxDclAccessoryQuantity) * 100));
+
+  return (
+    <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
+      <div
+        className={`h-full rounded-full ${
+          quantity < 0 ? "bg-red-300" : "bg-orange-300"
+        }`}
+        style={{ width: `${width}%` }}
+      />
+    </div>
+  );
+}
+
 function DclAccessoriesTable() {
   return (
     <Card>
@@ -767,8 +790,8 @@ function DclAccessoriesTable() {
           DCL Accessories
         </h3>
         <p className="mt-1 text-sm text-stone-500">
-          SKU, description, and quantity for DCL accessories and non-device
-          inventory.
+          SKU, description, quantity, and relative stock level for DCL
+          accessories and non-device inventory.
         </p>
       </div>
 
@@ -786,7 +809,14 @@ function DclAccessoriesTable() {
               className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 px-3 py-3 text-sm"
             >
               <div className="font-medium text-stone-700">{item.sku}</div>
-              <div className="leading-5 text-stone-700">{item.description}</div>
+
+              <div>
+                <div className="leading-5 text-stone-700">
+                  {item.description}
+                </div>
+                <DclAccessorySparkline quantity={item.quantity} />
+              </div>
+
               <div
                 className={`text-right font-semibold ${
                   item.quantity < 0 ? "text-red-700" : "text-stone-950"
