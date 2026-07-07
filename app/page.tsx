@@ -485,32 +485,22 @@ function Hero() {
     <section className="pt-6 sm:pt-10">
       <div className="rounded-[2rem] border border-stone-200 bg-white/70 p-5 shadow-sm backdrop-blur-sm sm:p-8 lg:p-10">
         <div className="max-w-3xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-amber-700">
-            Internal Inventory Management
-          </p>
-
-          <h1 className="mt-3 text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl lg:text-6xl">
             Daylight IMS
           </h1>
-
-          <p className="mt-4 max-w-2xl text-base leading-7 text-stone-600 sm:text-lg">
-            Mobile-first inventory dashboard for Office and DCL tracking.
-            Office is the detailed IMS view. DCL keeps device units in summary
-            cards and accessories in a simple SKU table.
-          </p>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <a
               href="#office"
               className="rounded-full bg-stone-950 px-5 py-3 text-center text-sm font-semibold text-white shadow-sm transition hover:bg-stone-800"
             >
-              View Office Inventory
+              Office Inventory
             </a>
             <a
               href="#dcl"
               className="rounded-full border border-stone-300 bg-white px-5 py-3 text-center text-sm font-semibold text-stone-900 transition hover:bg-stone-50"
             >
-              View DCL Inventory
+              DCL Inventory
             </a>
           </div>
         </div>
@@ -768,7 +758,10 @@ function DclAccessorySparkline({ quantity }: { quantity: number }) {
   const width =
     quantity === 0
       ? 0
-      : Math.max(4, Math.round((Math.abs(quantity) / maxDclAccessoryQuantity) * 100));
+      : Math.max(
+          4,
+          Math.round((Math.abs(quantity) / maxDclAccessoryQuantity) * 100)
+        );
 
   return (
     <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
