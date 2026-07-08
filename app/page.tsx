@@ -179,7 +179,7 @@ const FALLBACK_DATA: DashboardPayload = {
 
 type ViewMode = "office" | "dcl";
 
-const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL;
+const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
 
 export default function Page() {
   const [view, setView] = useState<ViewMode>("office");
