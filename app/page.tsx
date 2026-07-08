@@ -1,21 +1,16 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 
-type Stat = {
-  label: string;
-  value: string;
-  subtext: string;
-};
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-type InventoryStatus = {
-  label: string;
+type CountSet = {
   total: number;
   standard: number;
   kids: number;
-  note: string;
 };
 
-type SimpleCount = {
+type OfficeAccessory = {
   label: string;
   value: number;
 };
@@ -27,7 +22,7 @@ type WarrantyIssue = {
   kids: number;
 };
 
-type DclItem = {
+type DclAccessory = {
   sku: string;
   description: string;
   quantity: number;
@@ -38,320 +33,102 @@ type CreakDefinition = {
   description: string;
 };
 
-const overviewStats: Stat[] = [
-  {
-    label: "Total DC-1s",
-    value: "144",
-    subtext: "All office units currently in stock",
-  },
-  {
-    label: "Standard",
-    value: "109",
-    subtext: "Standard DC-1 inventory",
-  },
-  {
-    label: "Kids",
-    value: "35",
-    subtext: "Kids DC-1 inventory",
-  },
-];
+type ImsData = {
+  ok: boolean;
+  updatedAt?: string;
+  office: {
+    overview: {
+      totalDc1s: number;
+      standard: number;
+      kids: number;
+    };
+    status: {
+      newUnits: CountSet;
+      warranty: CountSet;
+      openBox: CountSet;
+    };
+    accessories: OfficeAccessory[];
+    warrantyIssues: WarrantyIssue[];
+    openBoxBreakdown: {
+      total: CountSet;
+      vip: CountSet;
+      sellable: CountSet;
+      warrantyGrade: CountSet;
+    };
+  };
+  dcl: {
+    summary: {
+      totalUnits: number;
+      standardUnits: number;
+      kidsUnits: number;
+      openBox: number;
+    };
+    accessories: DclAccessory[];
+    rawRows?: DclAccessory[];
+  };
+};
 
-const inventoryStatus: InventoryStatus[] = [
-  {
-    label: "New Units",
-    total: 25,
-    standard: 15,
-    kids: 10,
-    note: "Ready to sell",
+const emptyImsData: ImsData = {
+  ok: false,
+  office: {
+    overview: {
+      totalDc1s: 0,
+      standard: 0,
+      kids: 0,
+    },
+    status: {
+      newUnits: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+      warranty: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+      openBox: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+    },
+    accessories: [],
+    warrantyIssues: [],
+    openBoxBreakdown: {
+      total: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+      vip: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+      sellable: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+      warrantyGrade: {
+        total: 0,
+        standard: 0,
+        kids: 0,
+      },
+    },
   },
-  {
-    label: "Warranty",
-    total: 75,
-    standard: 75,
-    kids: 0,
-    note: "Condition marked as Warranty",
+  dcl: {
+    summary: {
+      totalUnits: 0,
+      standardUnits: 0,
+      kidsUnits: 0,
+      openBox: 0,
+    },
+    accessories: [],
+    rawRows: [],
   },
-  {
-    label: "Open Box",
-    total: 40,
-    standard: 19,
-    kids: 21,
-    note: "VIP, Sellable, or Warranty Grade",
-  },
-];
-
-const openBoxBreakdown: InventoryStatus[] = [
-  {
-    label: "VIP",
-    total: 10,
-    standard: 5,
-    kids: 5,
-    note: "Minimum to no creak",
-  },
-  {
-    label: "Sellable",
-    total: 20,
-    standard: 11,
-    kids: 9,
-    note: "Slight creak, still customer-ready",
-  },
-  {
-    label: "Warranty Grade",
-    total: 10,
-    standard: 3,
-    kids: 7,
-    note: "Significant creak; not customer-ready",
-  },
-];
-
-const accessories: SimpleCount[] = [
-  {
-    label: "Kids Case",
-    value: 13,
-  },
-  {
-    label: "Daylight Sling",
-    value: 20,
-  },
-  {
-    label: "Comfy Sleeve",
-    value: 8,
-  },
-  {
-    label: "Lamy Stylus",
-    value: 30,
-  },
-  {
-    label: "Stands",
-    value: 4,
-  },
-  {
-    label: "Wood Lamp Fixture",
-    value: 10,
-  },
-  {
-    label: "36 - (T45)",
-    value: 0,
-  },
-  {
-    label: "36-1 - (T45 Deep Amber)",
-    value: 0,
-  },
-  {
-    label: "37 - (ST64)",
-    value: 0,
-  },
-  {
-    label: "37-1 (ST64 Deep Amber)",
-    value: 0,
-  },
-  {
-    label: "37-2 (ST64 Bright 60W)",
-    value: 0,
-  },
-  {
-    label: "41 - (G80 Red)",
-    value: 0,
-  },
-];
-
-const warrantyIssues: WarrantyIssue[] = [
-  {
-    label: "Anti-glare film peeling",
-    total: 9,
-    standard: 9,
-    kids: 0,
-  },
-  {
-    label: "Blank screen, backlight on",
-    total: 7,
-    standard: 7,
-    kids: 0,
-  },
-  {
-    label: "Build Quality",
-    total: 7,
-    standard: 7,
-    kids: 0,
-  },
-  {
-    label: "Charging or Port Issue",
-    total: 6,
-    standard: 6,
-    kids: 0,
-  },
-  {
-    label: "Chipped screen",
-    total: 5,
-    standard: 5,
-    kids: 0,
-  },
-  {
-    label: "Dark lines on the screen",
-    total: 5,
-    standard: 5,
-    kids: 0,
-  },
-  {
-    label: "Dead Brick",
-    total: 4,
-    standard: 4,
-    kids: 0,
-  },
-  {
-    label: "Dead Pixel",
-    total: 4,
-    standard: 4,
-    kids: 0,
-  },
-  {
-    label: "Does not boot",
-    total: 3,
-    standard: 3,
-    kids: 0,
-  },
-  {
-    label: "Hot Spot doesn't work",
-    total: 3,
-    standard: 3,
-    kids: 0,
-  },
-  {
-    label: "Liquid Crystal Leakage",
-    total: 3,
-    standard: 3,
-    kids: 0,
-  },
-  {
-    label: "No backlight",
-    total: 2,
-    standard: 2,
-    kids: 0,
-  },
-  {
-    label: "PU Coat Degradation",
-    total: 2,
-    standard: 2,
-    kids: 0,
-  },
-  {
-    label: "SD Card Issue",
-    total: 1,
-    standard: 1,
-    kids: 0,
-  },
-  {
-    label: "Speaker Issue",
-    total: 1,
-    standard: 1,
-    kids: 0,
-  },
-  {
-    label: "Stylus Issue",
-    total: 0,
-    standard: 0,
-    kids: 0,
-  },
-  {
-    label: "Wi-Fi Issue",
-    total: 0,
-    standard: 0,
-    kids: 0,
-  },
-];
-
-const dclInventory: DclItem[] = [
-  {
-    sku: "1",
-    description: "Daylight DC-1",
-    quantity: 435,
-  },
-  {
-    sku: "7",
-    description: "Daylight Kids",
-    quantity: 850,
-  },
-  {
-    sku: "23",
-    description: "Daylight Sling",
-    quantity: 664,
-  },
-  {
-    sku: "28",
-    description: "Daylight Comfy Sleeve",
-    quantity: 434,
-  },
-  {
-    sku: "29",
-    description: "LAMY Pen",
-    quantity: 269,
-  },
-  {
-    sku: "30",
-    description: "Kids Stylus",
-    quantity: 244,
-  },
-  {
-    sku: "31",
-    description: "Daylight Kids Case",
-    quantity: 356,
-  },
-  {
-    sku: "34-",
-    description: "Daylight Stand",
-    quantity: 500,
-  },
-  {
-    sku: "35-",
-    description: "Daylight Keyboard",
-    quantity: 928,
-  },
-  {
-    sku: "36-",
-    description: "Small Incandescent Light Bulb (T45 6 pack)",
-    quantity: 0,
-  },
-  {
-    sku: "37-",
-    description: "Large Incandescent Light Bulb (ST64 4 pack)",
-    quantity: 2520,
-  },
-  {
-    sku: "38-",
-    description: "Kids Night Light",
-    quantity: 0,
-  },
-  {
-    sku: "40",
-    description: "Wooden Light Fixture",
-    quantity: 840,
-  },
-  {
-    sku: "41",
-    description: "Red Incandescent Bulb (G80, 3 pack)",
-    quantity: 2950,
-  },
-  {
-    sku: "37-1",
-    description: "incandescent light. ST64. 40W",
-    quantity: 3406,
-  },
-  {
-    sku: "37-2",
-    description: "incandescent light. ST64. 60W",
-    quantity: 1419,
-  },
-  {
-    sku: "36-1",
-    description: "incandescent light. T45. 25W",
-    quantity: 1461,
-  },
-  {
-    sku: "32",
-    description: "Daylight Keyboard Case",
-    quantity: -221,
-  },
-];
+};
 
 const creakDefinitions: CreakDefinition[] = [
   {
@@ -368,32 +145,75 @@ const creakDefinitions: CreakDefinition[] = [
   },
 ];
 
-const dclOpenBox = 237;
+function addCacheBust(url: string) {
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}cacheBust=${Date.now()}`;
+}
 
-const topWarrantyIssues = [...warrantyIssues]
-  .filter((issue) => issue.total > 0)
-  .sort((a, b) => b.total - a.total)
-  .slice(0, 5);
+async function getImsData(): Promise<{
+  data: ImsData;
+  error: string | null;
+}> {
+  const apiUrl = process.env.NEXT_PUBLIC_IMS_API_URL;
 
-const dclStandardUnits =
-  dclInventory.find((item) => item.sku === "1")?.quantity ?? 0;
+  if (!apiUrl) {
+    return {
+      data: emptyImsData,
+      error: "Missing NEXT_PUBLIC_IMS_API_URL environment variable.",
+    };
+  }
 
-const dclKidsUnits =
-  dclInventory.find((item) => item.sku === "7")?.quantity ?? 0;
+  try {
+    const response = await fetch(addCacheBust(apiUrl), {
+      cache: "no-store",
+    });
 
-const dclTotalUnits = dclStandardUnits + dclKidsUnits + dclOpenBox;
+    if (!response.ok) {
+      return {
+        data: emptyImsData,
+        error: `IMS API returned ${response.status}.`,
+      };
+    }
 
-const dclAccessoryInventory = dclInventory.filter(
-  (item) => item.sku !== "1" && item.sku !== "7"
-);
+    const data = (await response.json()) as ImsData;
 
-const maxDclAccessoryQuantity = Math.max(
-  ...dclAccessoryInventory.map((item) => Math.abs(item.quantity)),
-  1
-);
+    if (!data.ok) {
+      return {
+        data: emptyImsData,
+        error: "IMS API returned ok:false.",
+      };
+    }
+
+    return {
+      data,
+      error: null,
+    };
+  } catch (error) {
+    return {
+      data: emptyImsData,
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown error while loading IMS data.",
+    };
+  }
+}
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function formatUpdatedAt(value?: string) {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
 }
 
 function Card({
@@ -531,7 +351,13 @@ function MobileBottomNav() {
   );
 }
 
-function Hero() {
+function Hero({
+  updatedAt,
+  error,
+}: {
+  updatedAt?: string;
+  error: string | null;
+}) {
   return (
     <section className="pt-6 sm:pt-10">
       <div className="rounded-[2rem] border border-stone-200 bg-white/70 p-5 shadow-sm backdrop-blur-sm sm:p-8 lg:p-10">
@@ -539,6 +365,16 @@ function Hero() {
           <h1 className="text-4xl font-semibold tracking-tight text-stone-950 sm:text-5xl lg:text-6xl">
             Daylight IMS
           </h1>
+
+          <p className="mt-3 text-sm text-stone-500">
+            Last synced: {formatUpdatedAt(updatedAt)}
+          </p>
+
+          {error && (
+            <div className="mt-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Live data issue: {error}
+            </div>
+          )}
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
             <a
@@ -560,14 +396,32 @@ function Hero() {
   );
 }
 
-function OverviewCards() {
+function OverviewCards({ data }: { data: ImsData["office"]["overview"] }) {
+  const cards = [
+    {
+      label: "Total DC-1s",
+      value: data.totalDc1s,
+      subtext: "All office units currently in stock",
+    },
+    {
+      label: "Standard",
+      value: data.standard,
+      subtext: "Standard DC-1 inventory",
+    },
+    {
+      label: "Kids",
+      value: data.kids,
+      subtext: "Kids DC-1 inventory",
+    },
+  ];
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {overviewStats.map((stat) => (
+      {cards.map((stat) => (
         <Card key={stat.label}>
           <p className="text-sm font-medium text-stone-500">{stat.label}</p>
           <p className="mt-3 text-4xl font-semibold tracking-tight text-stone-950">
-            {stat.value}
+            {formatNumber(stat.value)}
           </p>
           <p className="mt-2 text-sm leading-5 text-stone-500">
             {stat.subtext}
@@ -578,36 +432,46 @@ function OverviewCards() {
   );
 }
 
-function InventoryStatusCard({ item }: { item: InventoryStatus }) {
-  const showCreakInfo = item.label === "Open Box";
+function InventoryStatusCard({
+  label,
+  item,
+  note,
+}: {
+  label: string;
+  item: CountSet;
+  note: string;
+}) {
+  const showCreakInfo = label === "Open Box";
 
   return (
     <Card>
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <p className="text-sm font-semibold text-stone-950">{item.label}</p>
+            <p className="text-sm font-semibold text-stone-950">{label}</p>
             {showCreakInfo && <CreakInfoButton />}
           </div>
 
-          <p className="mt-1 text-xs leading-5 text-stone-500">{item.note}</p>
+          <p className="mt-1 text-xs leading-5 text-stone-500">{note}</p>
         </div>
 
-        <p className="text-3xl font-semibold text-stone-950">{item.total}</p>
+        <p className="text-3xl font-semibold text-stone-950">
+          {formatNumber(item.total)}
+        </p>
       </div>
 
       <div className="mt-5 grid grid-cols-2 gap-3">
         <div className="rounded-2xl bg-stone-100 p-3">
           <p className="text-xs font-medium text-stone-500">Standard</p>
           <p className="mt-1 text-2xl font-semibold text-stone-950">
-            {item.standard}
+            {formatNumber(item.standard)}
           </p>
         </div>
 
         <div className="rounded-2xl bg-amber-50 p-3">
           <p className="text-xs font-medium text-amber-700">Kids</p>
           <p className="mt-1 text-2xl font-semibold text-stone-950">
-            {item.kids}
+            {formatNumber(item.kids)}
           </p>
         </div>
       </div>
@@ -620,7 +484,11 @@ function InventoryStatusGrid({
   items,
 }: {
   title: string;
-  items: InventoryStatus[];
+  items: {
+    label: string;
+    item: CountSet;
+    note: string;
+  }[];
 }) {
   return (
     <div>
@@ -628,14 +496,23 @@ function InventoryStatusGrid({
 
       <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
         {items.map((item) => (
-          <InventoryStatusCard key={item.label} item={item} />
+          <InventoryStatusCard
+            key={item.label}
+            label={item.label}
+            item={item.item}
+            note={item.note}
+          />
         ))}
       </div>
     </div>
   );
 }
 
-function AccessoriesSection() {
+function AccessoriesSection({
+  accessories,
+}: {
+  accessories: OfficeAccessory[];
+}) {
   return (
     <Card>
       <div className="mb-4">
@@ -646,19 +523,23 @@ function AccessoriesSection() {
       </div>
 
       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
-        {accessories.map((item) => (
-          <div
-            key={item.label}
-            className="flex items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-stone-50/70 px-4 py-3"
-          >
-            <p className="text-sm font-medium leading-5 text-stone-700">
-              {item.label}
-            </p>
-            <p className="shrink-0 text-xl font-semibold text-stone-950">
-              {item.value}
-            </p>
-          </div>
-        ))}
+        {accessories.length > 0 ? (
+          accessories.map((item) => (
+            <div
+              key={item.label}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-stone-200 bg-stone-50/70 px-4 py-3"
+            >
+              <p className="text-sm font-medium leading-5 text-stone-700">
+                {item.label}
+              </p>
+              <p className="shrink-0 text-xl font-semibold text-stone-950">
+                {formatNumber(item.value)}
+              </p>
+            </div>
+          ))
+        ) : (
+          <p className="text-sm text-stone-500">No accessories found.</p>
+        )}
       </div>
     </Card>
   );
@@ -681,11 +562,14 @@ function WarrantyIssueRow({
             {issue.label}
           </p>
           <p className="mt-1 text-xs text-stone-500">
-            Standard {issue.standard} · Kids {issue.kids}
+            Standard {formatNumber(issue.standard)} · Kids{" "}
+            {formatNumber(issue.kids)}
           </p>
         </div>
 
-        <p className="text-xl font-semibold text-stone-950">{issue.total}</p>
+        <p className="text-xl font-semibold text-stone-950">
+          {formatNumber(issue.total)}
+        </p>
       </div>
 
       <div className="mt-3 h-2 overflow-hidden rounded-full bg-stone-100">
@@ -698,8 +582,13 @@ function WarrantyIssueRow({
   );
 }
 
-function WarrantySection() {
-  const max = Math.max(...warrantyIssues.map((issue) => issue.total));
+function WarrantySection({ issues }: { issues: WarrantyIssue[] }) {
+  const max = Math.max(...issues.map((issue) => issue.total), 1);
+
+  const topIssues = [...issues]
+    .filter((issue) => issue.total > 0)
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 5);
 
   return (
     <div className="grid grid-cols-1 gap-4 lg:grid-cols-[0.9fr_1.1fr]">
@@ -714,9 +603,13 @@ function WarrantySection() {
         </div>
 
         <div className="space-y-2">
-          {topWarrantyIssues.map((issue) => (
-            <WarrantyIssueRow key={issue.label} issue={issue} max={max} />
-          ))}
+          {topIssues.length > 0 ? (
+            topIssues.map((issue) => (
+              <WarrantyIssueRow key={issue.label} issue={issue} max={max} />
+            ))
+          ) : (
+            <p className="text-sm text-stone-500">No warranty issues found.</p>
+          )}
         </div>
       </Card>
 
@@ -731,16 +624,56 @@ function WarrantySection() {
         </div>
 
         <div className="space-y-2">
-          {warrantyIssues.map((issue) => (
-            <WarrantyIssueRow key={issue.label} issue={issue} max={max} />
-          ))}
+          {issues.length > 0 ? (
+            issues.map((issue) => (
+              <WarrantyIssueRow key={issue.label} issue={issue} max={max} />
+            ))
+          ) : (
+            <p className="text-sm text-stone-500">No warranty issues found.</p>
+          )}
         </div>
       </Card>
     </div>
   );
 }
 
-function OfficeInventorySection() {
+function OfficeInventorySection({ office }: { office: ImsData["office"] }) {
+  const inventoryStatusItems = [
+    {
+      label: "New Units",
+      item: office.status.newUnits,
+      note: "Ready to sell",
+    },
+    {
+      label: "Warranty",
+      item: office.status.warranty,
+      note: "Condition marked as Warranty",
+    },
+    {
+      label: "Open Box",
+      item: office.status.openBox,
+      note: "VIP, Sellable, or Warranty Grade",
+    },
+  ];
+
+  const openBoxItems = [
+    {
+      label: "VIP",
+      item: office.openBoxBreakdown.vip,
+      note: "Minimum to no creak",
+    },
+    {
+      label: "Sellable",
+      item: office.openBoxBreakdown.sellable,
+      note: "Slight creak, still customer-ready",
+    },
+    {
+      label: "Warranty Grade",
+      item: office.openBoxBreakdown.warrantyGrade,
+      note: "Significant creak; not customer-ready",
+    },
+  ];
+
   return (
     <section id="office" className="scroll-mt-24 py-8 sm:py-12">
       <SectionHeader
@@ -750,43 +683,46 @@ function OfficeInventorySection() {
       />
 
       <div className="space-y-5">
-        <OverviewCards />
+        <OverviewCards data={office.overview} />
 
-        <InventoryStatusGrid title="Inventory Status" items={inventoryStatus} />
+        <InventoryStatusGrid
+          title="Inventory Status"
+          items={inventoryStatusItems}
+        />
 
         <InventoryStatusGrid
           title="Open Box Breakdown"
-          items={openBoxBreakdown}
+          items={openBoxItems}
         />
 
-        <AccessoriesSection />
+        <AccessoriesSection accessories={office.accessories} />
 
-        <WarrantySection />
+        <WarrantySection issues={office.warrantyIssues} />
       </div>
     </section>
   );
 }
 
-function DclSummaryCards() {
+function DclSummaryCards({ dcl }: { dcl: ImsData["dcl"] }) {
   const cards = [
     {
       label: "Total Units",
-      value: dclTotalUnits,
+      value: dcl.summary.totalUnits,
       note: "DC-1 + Kids + Open_Box",
     },
     {
       label: "Daylight DC-1",
-      value: dclStandardUnits,
+      value: dcl.summary.standardUnits,
       note: "SKU 1",
     },
     {
       label: "Daylight Kids",
-      value: dclKidsUnits,
+      value: dcl.summary.kidsUnits,
       note: "SKU 7",
     },
     {
       label: "Open_Box",
-      value: dclOpenBox,
+      value: dcl.summary.openBox,
       note: "DCL open box count",
     },
   ];
@@ -806,14 +742,17 @@ function DclSummaryCards() {
   );
 }
 
-function DclAccessorySparkline({ quantity }: { quantity: number }) {
+function DclAccessorySparkline({
+  quantity,
+  max,
+}: {
+  quantity: number;
+  max: number;
+}) {
   const width =
     quantity === 0
       ? 0
-      : Math.max(
-          4,
-          Math.round((Math.abs(quantity) / maxDclAccessoryQuantity) * 100)
-        );
+      : Math.max(4, Math.round((Math.abs(quantity) / max) * 100));
 
   return (
     <div className="mt-2 h-2 overflow-hidden rounded-full bg-stone-100">
@@ -827,7 +766,12 @@ function DclAccessorySparkline({ quantity }: { quantity: number }) {
   );
 }
 
-function DclAccessoriesTable() {
+function DclAccessoriesTable({ items }: { items: DclAccessory[] }) {
+  const maxQuantity = Math.max(
+    ...items.map((item) => Math.abs(item.quantity)),
+    1
+  );
+
   return (
     <Card>
       <div className="mb-4">
@@ -848,36 +792,45 @@ function DclAccessoriesTable() {
         </div>
 
         <div className="divide-y divide-stone-200 bg-white">
-          {dclAccessoryInventory.map((item) => (
-            <div
-              key={`${item.sku}-${item.description}`}
-              className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 px-3 py-3 text-sm"
-            >
-              <div className="font-medium text-stone-700">{item.sku}</div>
-
-              <div>
-                <div className="leading-5 text-stone-700">
-                  {item.description}
-                </div>
-                <DclAccessorySparkline quantity={item.quantity} />
-              </div>
-
+          {items.length > 0 ? (
+            items.map((item) => (
               <div
-                className={`text-right font-semibold ${
-                  item.quantity < 0 ? "text-red-700" : "text-stone-950"
-                }`}
+                key={`${item.sku}-${item.description}`}
+                className="grid grid-cols-[0.75fr_2fr_1fr] items-center gap-2 px-3 py-3 text-sm"
               >
-                {formatNumber(item.quantity)}
+                <div className="font-medium text-stone-700">{item.sku}</div>
+
+                <div>
+                  <div className="leading-5 text-stone-700">
+                    {item.description || "No description"}
+                  </div>
+                  <DclAccessorySparkline
+                    quantity={item.quantity}
+                    max={maxQuantity}
+                  />
+                </div>
+
+                <div
+                  className={`text-right font-semibold ${
+                    item.quantity < 0 ? "text-red-700" : "text-stone-950"
+                  }`}
+                >
+                  {formatNumber(item.quantity)}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="px-3 py-4 text-sm text-stone-500">
+              No DCL accessories found.
             </div>
-          ))}
+          )}
         </div>
       </div>
     </Card>
   );
 }
 
-function DclInventorySection() {
+function DclInventorySection({ dcl }: { dcl: ImsData["dcl"] }) {
   return (
     <section id="dcl" className="scroll-mt-24 py-8 pb-28 sm:py-12 md:pb-12">
       <div className="mb-8 h-px w-full bg-gradient-to-r from-transparent via-stone-300 to-transparent" />
@@ -889,8 +842,8 @@ function DclInventorySection() {
       />
 
       <div className="space-y-5">
-        <DclSummaryCards />
-        <DclAccessoriesTable />
+        <DclSummaryCards dcl={dcl} />
+        <DclAccessoriesTable items={dcl.accessories} />
       </div>
     </section>
   );
@@ -912,7 +865,9 @@ function DaylightLogoBadge() {
   );
 }
 
-export default function Home() {
+export default async function Home() {
+  const { data, error } = await getImsData();
+
   return (
     <main id="top" className="min-h-screen bg-stone-100 text-stone-950">
       <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden">
@@ -925,9 +880,9 @@ export default function Home() {
       <DesktopNav />
 
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <Hero />
-        <OfficeInventorySection />
-        <DclInventorySection />
+        <Hero updatedAt={data.updatedAt} error={error} />
+        <OfficeInventorySection office={data.office} />
+        <DclInventorySection dcl={data.dcl} />
       </div>
 
       <DaylightLogoBadge />
