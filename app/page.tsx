@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import type { CSSProperties, ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
 type CountGroup = {
@@ -248,6 +249,11 @@ export default function Page() {
     ...office.accessories.map((item) => Math.abs(item.value))
   );
 
+  const warrantyIssueMax = Math.max(
+    1,
+    ...office.warrantyIssues.map((item) => Math.abs(item.total))
+  );
+
   const dclAccessoryMax = Math.max(
     1,
     ...dcl.accessories.map((item) => Math.abs(item.quantity))
@@ -322,26 +328,22 @@ export default function Page() {
           value={dcl.summary.totalUnits}
         />
       </section>
-
-      {view === "office" ? (
+            {view === "office" ? (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Office Inventory</h2>
 
           <div className="card-grid-3" style={styles.cardGrid3}>
-            <SummaryCard
-              title="Total DC-1s"
+            <OverviewMetricCard
+              label="Total DC-1s in stock"
               value={office.overview.totalDc1s}
-              helper="Total DC-1s in stock"
             />
-            <SummaryCard
-              title="Standard"
+            <OverviewMetricCard
+              label="Standard DC-1 Stock"
               value={office.overview.standard}
-              helper="Standard DC-1 Inventory"
             />
-            <SummaryCard
-              title="Kids"
+            <OverviewMetricCard
+              label="Kids DC-1 Inventory"
               value={office.overview.kids}
-              helper="Kids DC-1 Inventory"
             />
           </div>
 
@@ -428,7 +430,7 @@ export default function Page() {
                   kids={office.openBoxBreakdown.warrantyGrade.kids}
                 />
               </div>
-                          </div>
+            </div>
 
             <div style={{ ...styles.card, ...styles.tableCard }}>
               <div style={styles.cardHeader}>
@@ -455,8 +457,8 @@ export default function Page() {
               <div style={styles.dataTable}>
                 <div className="table-header-accessory" style={styles.tableHeaderAccessory}>
                   <div>Name</div>
-                  <div>Stock</div>
-                  <div>Quantity</div>
+                  <div />
+                  <div>Total</div>
                 </div>
 
                 {office.accessories.map((item) => (
@@ -480,16 +482,21 @@ export default function Page() {
               <div style={styles.dataTable}>
                 <div className="table-header-warranty" style={styles.tableHeaderWarranty}>
                   <div>Issue</div>
-                  <div>Stock</div>
+                  <div />
                   <div>Total</div>
                 </div>
 
                 {office.warrantyIssues.map((issue) => (
                   <div key={issue.label} className="table-row-warranty" style={styles.tableRowWarranty}>
-                    <div style={styles.primaryTextNoMargin}>{issue.label}</div>
+                    <div>
+                      <div style={styles.primaryTextNoMargin}>{issue.label}</div>
+                      <div style={styles.warrantySplitTiny}>
+                        S {issue.standard} / K {issue.kids}
+                      </div>
+                    </div>
                     <ProgressBar
                       value={issue.total}
-                      max={Math.max(1, office.status.warranty.total)}
+                      max={warrantyIssueMax}
                     />
                     <div style={styles.numberCell}>{issue.total}</div>
                   </div>
@@ -528,9 +535,6 @@ export default function Page() {
           <div style={{ ...styles.card, ...styles.tableCard, marginTop: 24 }}>
             <div style={styles.cardHeader}>
               <h3 style={styles.cardTitle}>DCL Accessories</h3>
-              <p style={styles.cardSubtitle}>
-                SKU, description, quantity, and relative stock level.
-              </p>
             </div>
 
             <div style={styles.dataTable}>
@@ -580,6 +584,21 @@ function TopMetricCard({
   );
 }
 
+function OverviewMetricCard({
+  label,
+  value,
+}: {
+  label: string;
+  value: number;
+}) {
+  return (
+    <div style={styles.card}>
+      <div style={styles.metricLabel}>{label}</div>
+      <div style={styles.metricValue}>{formatNumber(value)}</div>
+    </div>
+  );
+}
+
 function SummaryCard({
   title,
   value,
@@ -611,7 +630,7 @@ function StatusCard({
   helper: string;
   standard: number;
   kids: number;
-  infoButton?: React.ReactNode;
+  infoButton?: ReactNode;
 }) {
   return (
     <div style={styles.card}>
@@ -673,7 +692,6 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
     </div>
   );
 }
-
 function ResponsiveStyles() {
   return (
     <style>{`
@@ -770,7 +788,7 @@ function formatUpdatedAt(value: string) {
   }).format(date);
 }
 
-const styles: Record<string, React.CSSProperties> = {
+const styles: Record<string, CSSProperties> = {
   page: {
     minHeight: "100vh",
     background:
@@ -858,7 +876,7 @@ const styles: Record<string, React.CSSProperties> = {
   pillButton: {
     border: "1px solid rgba(120, 113, 108, 0.2)",
     background: "#fbfaf7",
-        color: "#292524",
+    color: "#292524",
     borderRadius: 999,
     padding: "12px 18px",
     fontSize: 15,
@@ -1074,6 +1092,12 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     color: "#292524",
   },
+  warrantySplitTiny: {
+    marginTop: 4,
+    fontSize: 12,
+    color: "#78716c",
+    lineHeight: 1.2,
+  },
   simpleListValue: {
     fontSize: 18,
     fontWeight: 740,
@@ -1125,46 +1149,6 @@ const styles: Record<string, React.CSSProperties> = {
     borderTop: "1px solid rgba(120, 113, 108, 0.12)",
     alignItems: "center",
   },
-  tableHeader: {
-    display: "grid",
-    gridTemplateColumns: "1fr 120px",
-    gap: 16,
-    padding: "14px 16px",
-    background: "#efede7",
-    color: "#57534e",
-    fontSize: 13,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-  },
-  tableRow: {
-    display: "grid",
-    gridTemplateColumns: "1fr 120px",
-    gap: 16,
-    padding: "14px 16px",
-    borderTop: "1px solid rgba(120, 113, 108, 0.12)",
-    alignItems: "center",
-  },
-  tableHeader3: {
-    display: "grid",
-    gridTemplateColumns: "1fr 90px 110px",
-    gap: 16,
-    padding: "14px 16px",
-    background: "#efede7",
-    color: "#57534e",
-    fontSize: 13,
-    fontWeight: 700,
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
-  },
-  tableRow3: {
-    display: "grid",
-    gridTemplateColumns: "1fr 90px 110px",
-    gap: 16,
-    padding: "14px 16px",
-    borderTop: "1px solid rgba(120, 113, 108, 0.12)",
-    alignItems: "center",
-  },
   tableHeaderDcl: {
     display: "grid",
     gridTemplateColumns: "90px 1fr 120px 90px",
@@ -1208,10 +1192,6 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 18,
     fontWeight: 740,
     color: "#111827",
-  },
-  splitCell: {
-    fontSize: 14,
-    color: "#57534e",
   },
   progressTrack: {
     height: 8,
