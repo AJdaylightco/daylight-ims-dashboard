@@ -213,7 +213,7 @@ export default function Page() {
             setError(json.error || "Failed to load live IMS data.");
           }
         }
-      } catch (err) {
+      } catch {
         if (!cancelled) {
           setError("Failed to fetch live IMS data.");
         }
@@ -287,8 +287,7 @@ export default function Page() {
           </button>
         </nav>
       </header>
-
-      <section className="hero-grid" style={styles.heroGrid}>
+            <section className="hero-grid" style={styles.heroGrid}>
         <div style={{ ...styles.card, ...styles.heroCard }}>
           <h1 style={styles.heroTitle}>Daylight IMS</h1>
           <p style={styles.syncedText}>Last synced: {syncedLabel}</p>
@@ -328,7 +327,8 @@ export default function Page() {
           value={dcl.summary.totalUnits}
         />
       </section>
-            {view === "office" ? (
+
+      {view === "office" ? (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Office Inventory</h2>
 
@@ -541,8 +541,8 @@ export default function Page() {
               <div className="table-header-dcl" style={styles.tableHeaderDcl}>
                 <div>SKU</div>
                 <div>Description</div>
-                <div>Stock</div>
-                <div>Quantity</div>
+                <div />
+                <div>Total</div>
               </div>
 
               {dcl.accessories.map((item) => (
@@ -568,7 +568,6 @@ export default function Page() {
     </main>
   );
 }
-
 function TopMetricCard({
   label,
   value,
@@ -692,6 +691,7 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
     </div>
   );
 }
+
 function ResponsiveStyles() {
   return (
     <style>{`
@@ -888,7 +888,7 @@ const styles: Record<string, CSSProperties> = {
     color: "#fff",
     border: "1px solid #171717",
   },
-  helperText: {
+    helperText: {
     marginTop: 14,
     fontSize: 14,
     color: "#78716c",
