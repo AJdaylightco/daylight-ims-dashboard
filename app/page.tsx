@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useState } from "react";
 
 type CountGroup = {
@@ -255,6 +256,7 @@ export default function Page() {
   return (
     <main style={styles.page}>
       <BackgroundGlow />
+      <ResponsiveStyles />
 
       <header style={styles.topNav}>
         <div style={styles.brand}>Daylight IMS</div>
@@ -280,7 +282,7 @@ export default function Page() {
         </nav>
       </header>
 
-      <section style={styles.heroGrid}>
+      <section className="hero-grid" style={styles.heroGrid}>
         <div style={{ ...styles.card, ...styles.heroCard }}>
           <h1 style={styles.heroTitle}>Daylight IMS</h1>
           <p style={styles.syncedText}>Last synced: {syncedLabel}</p>
@@ -311,15 +313,13 @@ export default function Page() {
         </div>
 
         <TopMetricCard
-          label="Office Inventory"
+          label="Office Inventory Units in Stock"
           value={office.overview.totalDc1s}
-          helper="Current office units in stock"
         />
 
         <TopMetricCard
-          label="DCL Inventory"
+          label="DCL Inventory Units in Stock"
           value={dcl.summary.totalUnits}
-          helper="Current DCL units in stock"
         />
       </section>
 
@@ -327,21 +327,21 @@ export default function Page() {
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Office Inventory</h2>
 
-          <div style={styles.cardGrid3}>
+          <div className="card-grid-3" style={styles.cardGrid3}>
             <SummaryCard
               title="Total DC-1s"
               value={office.overview.totalDc1s}
-              helper="All office units currently in stock"
+              helper="Total DC-1s in stock"
             />
             <SummaryCard
               title="Standard"
               value={office.overview.standard}
-              helper="Standard DC-1 inventory"
+              helper="Standard DC-1 Inventory"
             />
             <SummaryCard
               title="Kids"
               value={office.overview.kids}
-              helper="Kids DC-1 inventory"
+              helper="Kids DC-1 Inventory"
             />
           </div>
 
@@ -349,21 +349,13 @@ export default function Page() {
             <h3 style={styles.subsectionTitle}>Inventory Status</h3>
           </div>
 
-          <div style={styles.cardGrid3}>
+          <div className="card-grid-3" style={styles.cardGrid3}>
             <StatusCard
               title="New Units"
               value={office.status.newUnits.total}
               helper="Ready to sell"
               standard={office.status.newUnits.standard}
               kids={office.status.newUnits.kids}
-            />
-
-            <StatusCard
-              title="Warranty"
-              value={office.status.warranty.total}
-              helper="Condition marked as Warranty"
-              standard={office.status.warranty.standard}
-              kids={office.status.warranty.kids}
             />
 
             <StatusCard
@@ -400,9 +392,17 @@ export default function Page() {
                 </div>
               }
             />
+
+            <StatusCard
+              title="Warranty"
+              value={office.status.warranty.total}
+              helper="Condition marked as Warranty"
+              standard={office.status.warranty.standard}
+              kids={office.status.warranty.kids}
+            />
           </div>
 
-          <div style={styles.twoColumnLayout}>
+          <div className="two-column-layout" style={styles.twoColumnLayout}>
             <div style={{ ...styles.card, ...styles.tableCard }}>
               <div style={styles.cardHeader}>
                 <h3 style={styles.cardTitle}>Open Box Breakdown</h3>
@@ -428,7 +428,7 @@ export default function Page() {
                   kids={office.openBoxBreakdown.warrantyGrade.kids}
                 />
               </div>
-            </div>
+                          </div>
 
             <div style={{ ...styles.card, ...styles.tableCard }}>
               <div style={styles.cardHeader}>
@@ -446,27 +446,26 @@ export default function Page() {
             </div>
           </div>
 
-          <div style={styles.twoColumnLayout}>
+          <div className="two-column-layout" style={styles.twoColumnLayout}>
             <div style={{ ...styles.card, ...styles.tableCard }}>
               <div style={styles.cardHeader}>
                 <h3 style={styles.cardTitle}>Office Accessories</h3>
               </div>
 
               <div style={styles.dataTable}>
-                <div style={styles.tableHeader}>
+                <div className="table-header-accessory" style={styles.tableHeaderAccessory}>
                   <div>Name</div>
+                  <div>Stock</div>
                   <div>Quantity</div>
                 </div>
 
                 {office.accessories.map((item) => (
-                  <div key={item.label} style={styles.tableRow}>
-                    <div>
-                      <div style={styles.primaryText}>{item.label}</div>
-                      <ProgressBar
-                        value={Math.abs(item.value)}
-                        max={officeAccessoryMax}
-                      />
-                    </div>
+                  <div key={item.label} className="table-row-accessory" style={styles.tableRowAccessory}>
+                    <div style={styles.primaryTextNoMargin}>{item.label}</div>
+                    <ProgressBar
+                      value={Math.abs(item.value)}
+                      max={officeAccessoryMax}
+                    />
                     <div style={styles.numberCell}>{item.value}</div>
                   </div>
                 ))}
@@ -479,22 +478,20 @@ export default function Page() {
               </div>
 
               <div style={styles.dataTable}>
-                <div style={styles.tableHeader3}>
+                <div className="table-header-warranty" style={styles.tableHeaderWarranty}>
                   <div>Issue</div>
+                  <div>Stock</div>
                   <div>Total</div>
-                  <div>Split</div>
                 </div>
 
                 {office.warrantyIssues.map((issue) => (
-                  <div key={issue.label} style={styles.tableRow3}>
-                    <div>
-                      <div style={styles.primaryText}>{issue.label}</div>
-                      <ProgressBar value={issue.total} max={Math.max(1, office.status.warranty.total)} />
-                    </div>
+                  <div key={issue.label} className="table-row-warranty" style={styles.tableRowWarranty}>
+                    <div style={styles.primaryTextNoMargin}>{issue.label}</div>
+                    <ProgressBar
+                      value={issue.total}
+                      max={Math.max(1, office.status.warranty.total)}
+                    />
                     <div style={styles.numberCell}>{issue.total}</div>
-                    <div style={styles.splitCell}>
-                      S {issue.standard} / K {issue.kids}
-                    </div>
                   </div>
                 ))}
               </div>
@@ -505,7 +502,7 @@ export default function Page() {
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>DCL Inventory</h2>
 
-          <div style={styles.cardGrid4}>
+          <div className="card-grid-4" style={styles.cardGrid4}>
             <SummaryCard
               title="DCL Total Units"
               value={dcl.summary.totalUnits}
@@ -537,19 +534,24 @@ export default function Page() {
             </div>
 
             <div style={styles.dataTable}>
-              <div style={styles.tableHeaderDcl}>
+              <div className="table-header-dcl" style={styles.tableHeaderDcl}>
                 <div>SKU</div>
                 <div>Description</div>
+                <div>Stock</div>
                 <div>Quantity</div>
               </div>
 
               {dcl.accessories.map((item) => (
-                <div key={`${item.sku}-${item.description}`} style={styles.tableRowDcl}>
+                <div
+                  key={`${item.sku}-${item.description}`}
+                  className="table-row-dcl"
+                  style={styles.tableRowDcl}
+                >
                   <div style={styles.mutedCell}>{item.sku}</div>
-                  <div>
-                    <div style={styles.primaryText}>{item.description || "No description"}</div>
-                    <ProgressBar value={Math.abs(item.quantity)} max={dclAccessoryMax} />
+                  <div style={styles.primaryTextNoMargin}>
+                    {item.description || "No description"}
                   </div>
+                  <ProgressBar value={Math.abs(item.quantity)} max={dclAccessoryMax} />
                   <div style={styles.numberCell}>{item.quantity}</div>
                 </div>
               ))}
@@ -566,17 +568,14 @@ export default function Page() {
 function TopMetricCard({
   label,
   value,
-  helper,
 }: {
   label: string;
   value: number;
-  helper: string;
 }) {
   return (
     <div style={{ ...styles.card, ...styles.topMetricCard }}>
       <div style={styles.metricLabel}>{label}</div>
       <div style={styles.metricValue}>{formatNumber(value)}</div>
-      <div style={styles.metricHelper}>{helper}</div>
     </div>
   );
 }
@@ -675,6 +674,59 @@ function ProgressBar({ value, max }: { value: number; max: number }) {
   );
 }
 
+function ResponsiveStyles() {
+  return (
+    <style>{`
+      @media (max-width: 980px) {
+        .hero-grid,
+        .card-grid-3,
+        .card-grid-4,
+        .two-column-layout {
+          grid-template-columns: 1fr !important;
+        }
+      }
+
+      @media (max-width: 640px) {
+        body {
+          overflow-x: hidden;
+        }
+
+        .hero-grid {
+          margin-top: 18px !important;
+          padding-left: 14px !important;
+          padding-right: 14px !important;
+          gap: 12px !important;
+        }
+
+        .card-grid-3,
+        .card-grid-4,
+        .two-column-layout {
+          gap: 12px !important;
+          margin-top: 14px !important;
+        }
+
+        .table-header-accessory,
+        .table-row-accessory,
+        .table-header-warranty,
+        .table-row-warranty {
+          grid-template-columns: minmax(0, 1fr) 56px 52px !important;
+          gap: 8px !important;
+          padding-left: 10px !important;
+          padding-right: 10px !important;
+        }
+
+        .table-header-dcl,
+        .table-row-dcl {
+          grid-template-columns: 42px minmax(0, 1fr) 52px 58px !important;
+          gap: 8px !important;
+          padding-left: 10px !important;
+          padding-right: 10px !important;
+        }
+      }
+    `}</style>
+  );
+}
+
 function BackgroundGlow() {
   return (
     <>
@@ -687,11 +739,16 @@ function BackgroundGlow() {
 function FloatingMark() {
   return (
     <div style={styles.floatingMark}>
-      <svg width="32" height="32" viewBox="0 0 320 200" aria-hidden="true">
-        <circle cx="71" cy="59" r="32" fill="#f5b700" />
-        <path d="M126 36a69 69 0 1 1-69 69h56V36h13Z" fill="#f59e0b" />
-        <path d="M249 36a89 89 0 1 1-89 89h72V36h17Z" fill="#f97316" />
-      </svg>
+      <div style={styles.floatingLogoInner}>
+        <Image
+          src="/daylight-logo.png"
+          alt="Daylight logo"
+          fill
+          style={{ objectFit: "contain" }}
+          priority
+          sizes="40px"
+        />
+      </div>
     </div>
   );
 }
@@ -801,7 +858,7 @@ const styles: Record<string, React.CSSProperties> = {
   pillButton: {
     border: "1px solid rgba(120, 113, 108, 0.2)",
     background: "#fbfaf7",
-    color: "#292524",
+        color: "#292524",
     borderRadius: 999,
     padding: "12px 18px",
     fontSize: 15,
@@ -1028,6 +1085,46 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: 18,
     overflow: "hidden",
   },
+  tableHeaderAccessory: {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 90px",
+    gap: 16,
+    padding: "14px 16px",
+    background: "#efede7",
+    color: "#57534e",
+    fontSize: 13,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  tableRowAccessory: {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 90px",
+    gap: 16,
+    padding: "14px 16px",
+    borderTop: "1px solid rgba(120, 113, 108, 0.12)",
+    alignItems: "center",
+  },
+  tableHeaderWarranty: {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 90px",
+    gap: 16,
+    padding: "14px 16px",
+    background: "#efede7",
+    color: "#57534e",
+    fontSize: 13,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+  },
+  tableRowWarranty: {
+    display: "grid",
+    gridTemplateColumns: "1fr 120px 90px",
+    gap: 16,
+    padding: "14px 16px",
+    borderTop: "1px solid rgba(120, 113, 108, 0.12)",
+    alignItems: "center",
+  },
   tableHeader: {
     display: "grid",
     gridTemplateColumns: "1fr 120px",
@@ -1070,7 +1167,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tableHeaderDcl: {
     display: "grid",
-    gridTemplateColumns: "120px 1fr 120px",
+    gridTemplateColumns: "90px 1fr 120px 90px",
     gap: 16,
     padding: "14px 16px",
     background: "#efede7",
@@ -1082,7 +1179,7 @@ const styles: Record<string, React.CSSProperties> = {
   },
   tableRowDcl: {
     display: "grid",
-    gridTemplateColumns: "120px 1fr 120px",
+    gridTemplateColumns: "90px 1fr 120px 90px",
     gap: 16,
     padding: "14px 16px",
     borderTop: "1px solid rgba(120, 113, 108, 0.12)",
@@ -1092,6 +1189,15 @@ const styles: Record<string, React.CSSProperties> = {
     fontSize: 15,
     color: "#292524",
     marginBottom: 8,
+  },
+  primaryTextNoMargin: {
+    fontSize: 15,
+    color: "#292524",
+    marginBottom: 0,
+    minWidth: 0,
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+    whiteSpace: "nowrap",
   },
   mutedCell: {
     fontSize: 14,
@@ -1144,8 +1250,8 @@ const styles: Record<string, React.CSSProperties> = {
     position: "fixed",
     right: 22,
     bottom: 22,
-    width: 56,
-    height: 56,
+    width: 64,
+    height: 64,
     borderRadius: "50%",
     background: "rgba(255,255,255,0.9)",
     boxShadow: "0 10px 24px rgba(28,25,23,0.12)",
@@ -1153,5 +1259,10 @@ const styles: Record<string, React.CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     border: "1px solid rgba(120, 113, 108, 0.12)",
+  },
+  floatingLogoInner: {
+    position: "relative",
+    width: 40,
+    height: 40,
   },
 };
