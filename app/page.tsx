@@ -510,25 +510,21 @@ export default function Page() {
           <h2 style={styles.sectionTitle}>DCL Inventory</h2>
 
           <div className="card-grid-4" style={styles.cardGrid4}>
-            <SummaryCard
-              title="DCL Total Units"
+            <OverviewMetricCard
+              label="DCL Total Units"
               value={dcl.summary.totalUnits}
-              helper="DC-1 + Kids + Open_Box"
             />
-            <SummaryCard
-              title="DCL Standard"
+            <OverviewMetricCard
+              label="DCL Standard"
               value={dcl.summary.standardUnits}
-              helper="SKU 1"
             />
-            <SummaryCard
-              title="DCL Kids"
+            <OverviewMetricCard
+              label="DCL Kids"
               value={dcl.summary.kidsUnits}
-              helper="SKU 7"
             />
-            <SummaryCard
-              title="DCL Open_Box"
+            <OverviewMetricCard
+              label="DCL Open_Box"
               value={dcl.summary.openBox}
-              helper="DCL open box count"
             />
           </div>
 
