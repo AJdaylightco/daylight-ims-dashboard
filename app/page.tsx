@@ -67,6 +67,11 @@ type DashboardPayload = {
   error?: string;
 };
 
+type ViewMode = "office" | "dcl";
+type SortMode = "name" | "total";
+
+const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
+
 const FALLBACK_DATA: DashboardPayload = {
   ok: true,
   updatedAt: new Date().toISOString(),
@@ -179,16 +184,14 @@ const FALLBACK_DATA: DashboardPayload = {
   },
 };
 
-type ViewMode = "office" | "dcl";
-
-const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
-
 export default function Page() {
   const [view, setView] = useState<ViewMode>("office");
   const [data, setData] = useState<DashboardPayload>(FALLBACK_DATA);
   const [loading, setLoading] = useState<boolean>(!!API_URL);
   const [error, setError] = useState<string>("");
   const [showOpenBoxInfo, setShowOpenBoxInfo] = useState(false);
+  const [officeAccessorySort, setOfficeAccessorySort] = useState<SortMode>("total");
+  const [warrantyIssueSort, setWarrantyIssueSort] = useState<SortMode>("total");
 
   useEffect(() => {
     if (!API_URL) {
@@ -244,6 +247,26 @@ export default function Page() {
       .slice(0, 5);
   }, [office.warrantyIssues]);
 
+  const sortedOfficeAccessories = useMemo(() => {
+    const items = [...office.accessories];
+
+    if (officeAccessorySort === "name") {
+      return items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    return items.sort((a, b) => b.value - a.value);
+  }, [office.accessories, officeAccessorySort]);
+
+  const sortedWarrantyIssues = useMemo(() => {
+    const items = [...office.warrantyIssues];
+
+    if (warrantyIssueSort === "name") {
+      return items.sort((a, b) => a.label.localeCompare(b.label));
+    }
+
+    return items.sort((a, b) => b.total - a.total);
+  }, [office.warrantyIssues, warrantyIssueSort]);
+
   const officeAccessoryMax = Math.max(
     1,
     ...office.accessories.map((item) => Math.abs(item.value))
@@ -263,31 +286,9 @@ export default function Page() {
     <main style={styles.page}>
       <BackgroundGlow />
       <ResponsiveStyles />
+      <MobileFloatingSwitch view={view} onChange={setView} />
 
-      <header style={styles.topNav}>
-        <div style={styles.brand}>Daylight IMS</div>
-        <nav style={styles.topNavLinks}>
-          <button
-            style={{
-              ...styles.topNavButton,
-              ...(view === "office" ? styles.topNavButtonActive : {}),
-            }}
-            onClick={() => setView("office")}
-          >
-            Office Inventory
-          </button>
-          <button
-            style={{
-              ...styles.topNavButton,
-              ...(view === "dcl" ? styles.topNavButtonActive : {}),
-            }}
-            onClick={() => setView("dcl")}
-          >
-            DCL Inventory
-          </button>
-        </nav>
-      </header>
-            <section className="hero-grid" style={styles.heroGrid}>
+      <section className="hero-grid" style={styles.heroGrid}>
         <div style={{ ...styles.card, ...styles.heroCard }}>
           <h1 style={styles.heroTitle}>Daylight IMS</h1>
           <p style={styles.syncedText}>Last synced: {syncedLabel}</p>
@@ -327,8 +328,7 @@ export default function Page() {
           value={dcl.summary.totalUnits}
         />
       </section>
-
-      {view === "office" ? (
+            {view === "office" ? (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Office Inventory</h2>
 
@@ -378,7 +378,10 @@ export default function Page() {
                   </button>
 
                   {showOpenBoxInfo && (
-                    <div style={styles.infoPopover}>
+                    <div
+                      className="open-box-info-popover"
+                      style={styles.infoPopover}
+                    >
                       <div style={styles.infoPopoverTitle}>Open Box Definitions</div>
                       <div style={styles.infoLine}>
                         <strong>VIP</strong> — minimum to no creak
@@ -434,7 +437,7 @@ export default function Page() {
 
             <div style={{ ...styles.card, ...styles.tableCard }}>
               <div style={styles.cardHeader}>
-                <h3 style={styles.cardTitle}>Top Warranty Issues</h3>
+                <h3 style={styles.cardTitle}>Top Warranty Issues in Office</h3>
               </div>
 
               <div style={styles.simpleList}>
@@ -456,13 +459,39 @@ export default function Page() {
 
               <div style={styles.dataTable}>
                 <div className="table-header-accessory" style={styles.tableHeaderAccessory}>
-                  <div>Name</div>
+                  <button
+                    type="button"
+                    onClick={() => setOfficeAccessorySort("name")}
+                    style={{
+                      ...styles.sortHeaderButton,
+                      ...(officeAccessorySort === "name"
+                        ? styles.sortHeaderButtonActive
+                        : {}),
+                    }}
+                  >
+                    Name
+                  </button>
                   <div />
-                  <div>Total</div>
+                  <button
+                    type="button"
+                    onClick={() => setOfficeAccessorySort("total")}
+                    style={{
+                      ...styles.sortHeaderButton,
+                      ...(officeAccessorySort === "total"
+                        ? styles.sortHeaderButtonActive
+                        : {}),
+                    }}
+                  >
+                    Total
+                  </button>
                 </div>
 
-                {office.accessories.map((item) => (
-                  <div key={item.label} className="table-row-accessory" style={styles.tableRowAccessory}>
+                {sortedOfficeAccessories.map((item) => (
+                  <div
+                    key={item.label}
+                    className="table-row-accessory"
+                    style={styles.tableRowAccessory}
+                  >
                     <div style={styles.primaryTextNoMargin}>{item.label}</div>
                     <ProgressBar
                       value={Math.abs(item.value)}
@@ -481,13 +510,39 @@ export default function Page() {
 
               <div style={styles.dataTable}>
                 <div className="table-header-warranty" style={styles.tableHeaderWarranty}>
-                  <div>Issue</div>
+                  <button
+                    type="button"
+                    onClick={() => setWarrantyIssueSort("name")}
+                    style={{
+                      ...styles.sortHeaderButton,
+                      ...(warrantyIssueSort === "name"
+                        ? styles.sortHeaderButtonActive
+                        : {}),
+                    }}
+                  >
+                    Issue
+                  </button>
                   <div />
-                  <div>Total</div>
+                  <button
+                    type="button"
+                    onClick={() => setWarrantyIssueSort("total")}
+                    style={{
+                      ...styles.sortHeaderButton,
+                      ...(warrantyIssueSort === "total"
+                        ? styles.sortHeaderButtonActive
+                        : {}),
+                    }}
+                  >
+                    Total
+                  </button>
                 </div>
 
-                {office.warrantyIssues.map((issue) => (
-                  <div key={issue.label} className="table-row-warranty" style={styles.tableRowWarranty}>
+                {sortedWarrantyIssues.map((issue) => (
+                  <div
+                    key={issue.label}
+                    className="table-row-warranty"
+                    style={styles.tableRowWarranty}
+                  >
                     <div>
                       <div style={styles.primaryTextNoMargin}>{issue.label}</div>
                       <div style={styles.warrantySplitTiny}>
@@ -564,6 +619,39 @@ export default function Page() {
     </main>
   );
 }
+function MobileFloatingSwitch({
+  view,
+  onChange,
+}: {
+  view: ViewMode;
+  onChange: (view: ViewMode) => void;
+}) {
+  return (
+    <div className="mobile-floating-switch" style={styles.mobileFloatingSwitch}>
+      <button
+        type="button"
+        onClick={() => onChange("office")}
+        style={{
+          ...styles.mobileFloatingButton,
+          ...(view === "office" ? styles.mobileFloatingButtonActive : {}),
+        }}
+      >
+        Office
+      </button>
+      <button
+        type="button"
+        onClick={() => onChange("dcl")}
+        style={{
+          ...styles.mobileFloatingButton,
+          ...(view === "dcl" ? styles.mobileFloatingButtonActive : {}),
+        }}
+      >
+        DCL
+      </button>
+    </div>
+  );
+}
+
 function TopMetricCard({
   label,
   value,
@@ -590,24 +678,6 @@ function OverviewMetricCard({
     <div style={styles.card}>
       <div style={styles.metricLabel}>{label}</div>
       <div style={styles.metricValue}>{formatNumber(value)}</div>
-    </div>
-  );
-}
-
-function SummaryCard({
-  title,
-  value,
-  helper,
-}: {
-  title: string;
-  value: number;
-  helper: string;
-}) {
-  return (
-    <div style={styles.card}>
-      <div style={styles.metricLabel}>{title}</div>
-      <div style={styles.metricValue}>{formatNumber(value)}</div>
-      <div style={styles.metricHelper}>{helper}</div>
     </div>
   );
 }
@@ -668,7 +738,7 @@ function BreakdownRow({
   return (
     <div style={styles.breakdownRow}>
       <div>
-        <div style={styles.primaryText}>{label}</div>
+        <div style={styles.breakdownLabel}>{label}</div>
         <div style={styles.metricHelper}>
           Standard {standard} / Kids {kids}
         </div>
@@ -705,8 +775,12 @@ function ResponsiveStyles() {
           overflow-x: hidden;
         }
 
+        .mobile-floating-switch {
+          display: flex !important;
+        }
+
         .hero-grid {
-          margin-top: 18px !important;
+          margin-top: 76px !important;
           padding-left: 14px !important;
           padding-right: 14px !important;
           gap: 12px !important;
@@ -717,6 +791,16 @@ function ResponsiveStyles() {
         .two-column-layout {
           gap: 12px !important;
           margin-top: 14px !important;
+        }
+
+        .open-box-info-popover {
+          position: fixed !important;
+          top: 88px !important;
+          left: 16px !important;
+          right: 16px !important;
+          width: auto !important;
+          max-width: none !important;
+          z-index: 80 !important;
         }
 
         .table-header-accessory,
@@ -794,41 +878,34 @@ const styles: Record<string, CSSProperties> = {
     overflowX: "hidden",
     paddingBottom: 48,
   },
-  topNav: {
-    position: "sticky",
-    top: 0,
-    zIndex: 20,
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: "18px 24px",
-    borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
-    background: "rgba(248, 247, 244, 0.8)",
+  mobileFloatingSwitch: {
+    display: "none",
+    position: "fixed",
+    top: 14,
+    left: "50%",
+    transform: "translateX(-50%)",
+    zIndex: 70,
+    background: "rgba(255,255,255,0.92)",
+    border: "1px solid rgba(120, 113, 108, 0.14)",
+    borderRadius: 999,
+    padding: 5,
+    boxShadow: "0 10px 24px rgba(28,25,23,0.12)",
     backdropFilter: "blur(10px)",
+    gap: 4,
   },
-  brand: {
-    fontSize: 24,
-    fontWeight: 700,
-    color: "#1c1917",
-  },
-  topNavLinks: {
-    display: "flex",
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  topNavButton: {
+  mobileFloatingButton: {
     border: "none",
     background: "transparent",
-    color: "#57534e",
-    fontSize: 15,
-    padding: "8px 10px",
-    cursor: "pointer",
     borderRadius: 999,
+    padding: "9px 14px",
+    fontSize: 14,
+    fontWeight: 700,
+    color: "#57534e",
+    cursor: "pointer",
   },
-  topNavButtonActive: {
-    background: "#ede9df",
-    color: "#1c1917",
-    fontWeight: 600,
+  mobileFloatingButtonActive: {
+    background: "#171717",
+    color: "#fff",
   },
   heroGrid: {
     maxWidth: 1220,
@@ -1049,12 +1126,6 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 22,
     fontWeight: 730,
   },
-  cardSubtitle: {
-    margin: "8px 0 0",
-    fontSize: 15,
-    color: "#78716c",
-    lineHeight: 1.45,
-  },
   openBoxBreakdownList: {
     display: "grid",
     gap: 12,
@@ -1066,6 +1137,12 @@ const styles: Record<string, CSSProperties> = {
     gap: 18,
     padding: "14px 0",
     borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
+  },
+  breakdownLabel: {
+    fontSize: 17,
+    fontWeight: 740,
+    color: "#292524",
+    marginBottom: 8,
   },
   breakdownValue: {
     fontSize: 24,
@@ -1104,6 +1181,23 @@ const styles: Record<string, CSSProperties> = {
     border: "1px solid rgba(120, 113, 108, 0.12)",
     borderRadius: 18,
     overflow: "hidden",
+  },
+  sortHeaderButton: {
+    border: "none",
+    background: "transparent",
+    color: "#57534e",
+    fontSize: 13,
+    fontWeight: 700,
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    padding: 0,
+    textAlign: "left",
+    cursor: "pointer",
+  },
+  sortHeaderButtonActive: {
+    color: "#1c1917",
+    textDecoration: "underline",
+    textUnderlineOffset: 3,
   },
   tableHeaderAccessory: {
     display: "grid",
@@ -1165,11 +1259,6 @@ const styles: Record<string, CSSProperties> = {
     borderTop: "1px solid rgba(120, 113, 108, 0.12)",
     alignItems: "center",
   },
-  primaryText: {
-    fontSize: 15,
-    color: "#292524",
-    marginBottom: 8,
-  },
   primaryTextNoMargin: {
     fontSize: 15,
     color: "#292524",
@@ -1207,7 +1296,8 @@ const styles: Record<string, CSSProperties> = {
     width: 320,
     height: 320,
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(237, 194, 122, 0.16), rgba(237, 194, 122, 0) 70%)",
+    background:
+      "radial-gradient(circle, rgba(237, 194, 122, 0.16), rgba(237, 194, 122, 0) 70%)",
     pointerEvents: "none",
     zIndex: 0,
   },
@@ -1218,7 +1308,8 @@ const styles: Record<string, CSSProperties> = {
     width: 360,
     height: 360,
     borderRadius: "50%",
-    background: "radial-gradient(circle, rgba(190, 214, 190, 0.18), rgba(190, 214, 190, 0) 72%)",
+    background:
+      "radial-gradient(circle, rgba(190, 214, 190, 0.18), rgba(190, 214, 190, 0) 72%)",
     pointerEvents: "none",
     zIndex: 0,
   },
