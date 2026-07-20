@@ -183,7 +183,6 @@ const FALLBACK_DATA: DashboardPayload = {
     ],
   },
 };
-
 export default function Page() {
   const [view, setView] = useState<ViewMode>("office");
   const [data, setData] = useState<DashboardPayload>(FALLBACK_DATA);
@@ -192,6 +191,7 @@ export default function Page() {
   const [showOpenBoxInfo, setShowOpenBoxInfo] = useState(false);
   const [officeAccessorySort, setOfficeAccessorySort] = useState<SortMode>("total");
   const [warrantyIssueSort, setWarrantyIssueSort] = useState<SortMode>("total");
+  const [dclAccessorySort, setDclAccessorySort] = useState<SortMode>("total");
 
   useEffect(() => {
     if (!API_URL) {
@@ -267,6 +267,18 @@ export default function Page() {
     return items.sort((a, b) => b.total - a.total);
   }, [office.warrantyIssues, warrantyIssueSort]);
 
+  const sortedDclAccessories = useMemo(() => {
+    const items = [...dcl.accessories];
+
+    if (dclAccessorySort === "name") {
+      return items.sort((a, b) =>
+        a.description.localeCompare(b.description)
+      );
+    }
+
+    return items.sort((a, b) => b.quantity - a.quantity);
+  }, [dcl.accessories, dclAccessorySort]);
+
   const officeAccessoryMax = Math.max(
     1,
     ...office.accessories.map((item) => Math.abs(item.value))
@@ -282,6 +294,13 @@ export default function Page() {
     ...dcl.accessories.map((item) => Math.abs(item.quantity))
   );
 
+  const openBoxInfoButton = (
+    <OpenBoxInfoButton
+      show={showOpenBoxInfo}
+      onToggle={() => setShowOpenBoxInfo((prev) => !prev)}
+    />
+  );
+
   return (
     <main style={styles.page}>
       <BackgroundGlow />
@@ -289,7 +308,7 @@ export default function Page() {
       <MobileFloatingSwitch view={view} onChange={setView} />
 
       <section className="hero-grid" style={styles.heroGrid}>
-        <div style={{ ...styles.card, ...styles.heroCard }}>
+        <div className="hero-intro-card" style={{ ...styles.card, ...styles.heroCard }}>
           <h1 style={styles.heroTitle}>Daylight IMS</h1>
           <p style={styles.syncedText}>Last synced: {syncedLabel}</p>
 
@@ -328,30 +347,98 @@ export default function Page() {
           value={dcl.summary.totalUnits}
         />
       </section>
-            {view === "office" ? (
+
+      {view === "office" ? (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>Office Inventory</h2>
 
-          <div className="card-grid-3" style={styles.cardGrid3}>
+          <div className="office-desktop-layout">
+            <div className="card-grid-3" style={styles.cardGrid3}>
+              <OverviewMetricCard
+                label="Total DC-1s Stock"
+                value={office.overview.totalDc1s}
+              />
+              <OverviewMetricCard
+                label="Standard DC-1s"
+                value={office.overview.standard}
+              />
+              <OverviewMetricCard
+                label="Kid DC-1s"
+                value={office.overview.kids}
+              />
+            </div>
+
+            <div style={styles.subsectionHeader}>
+              <h3 style={styles.subsectionTitle}>Inventory Status</h3>
+            </div>
+
+            <div className="card-grid-3" style={styles.cardGrid3}>
+              <StatusCard
+                title="New Units"
+                value={office.status.newUnits.total}
+                helper="Ready to sell"
+                standard={office.status.newUnits.standard}
+                kids={office.status.newUnits.kids}
+              />
+
+              <StatusCard
+                title="Open Box"
+                value={office.status.openBox.total}
+                helper="VIP, Sellable, or Warranty Grade"
+                standard={office.status.openBox.standard}
+                kids={office.status.openBox.kids}
+                infoButton={openBoxInfoButton}
+              />
+
+              <StatusCard
+                title="Warranty"
+                value={office.status.warranty.total}
+                helper="Condition marked as Warranty"
+                standard={office.status.warranty.standard}
+                kids={office.status.warranty.kids}
+              />
+            </div>
+            <div className="two-column-layout" style={styles.twoColumnLayout}>
+              <OpenBoxBreakdownCard office={office} />
+
+              <TopWarrantyIssuesCard issues={topWarrantyIssues} />
+            </div>
+
+            <div className="two-column-layout" style={styles.twoColumnLayout}>
+              <OfficeAccessoriesCard
+                items={sortedOfficeAccessories}
+                max={officeAccessoryMax}
+                sort={officeAccessorySort}
+                onSortChange={setOfficeAccessorySort}
+              />
+
+              <AllWarrantyIssuesCard
+                items={sortedWarrantyIssues}
+                max={warrantyIssueMax}
+                sort={warrantyIssueSort}
+                onSortChange={setWarrantyIssueSort}
+              />
+            </div>
+          </div>
+
+          <div className="office-mobile-layout" style={styles.officeMobileLayout}>
             <OverviewMetricCard
-              label="Total DC-1s in stock"
+              label="Total DC-1s Stock"
               value={office.overview.totalDc1s}
             />
             <OverviewMetricCard
-              label="Standard DC-1 Stock"
+              label="Standard DC-1s"
               value={office.overview.standard}
             />
             <OverviewMetricCard
-              label="Kids DC-1 Inventory"
+              label="Kid DC-1s"
               value={office.overview.kids}
             />
-          </div>
 
-          <div style={styles.subsectionHeader}>
-            <h3 style={styles.subsectionTitle}>Inventory Status</h3>
-          </div>
+            <div style={styles.mobileSubsectionHeader}>
+              <h3 style={styles.subsectionTitle}>Inventory Status</h3>
+            </div>
 
-          <div className="card-grid-3" style={styles.cardGrid3}>
             <StatusCard
               title="New Units"
               value={office.status.newUnits.total}
@@ -366,37 +453,10 @@ export default function Page() {
               helper="VIP, Sellable, or Warranty Grade"
               standard={office.status.openBox.standard}
               kids={office.status.openBox.kids}
-              infoButton={
-                <div style={styles.infoWrapper}>
-                  <button
-                    onClick={() => setShowOpenBoxInfo((prev) => !prev)}
-                    style={styles.infoButton}
-                    aria-label="Open box definitions"
-                    title="Open box definitions"
-                  >
-                    i
-                  </button>
-
-                  {showOpenBoxInfo && (
-                    <div
-                      className="open-box-info-popover"
-                      style={styles.infoPopover}
-                    >
-                      <div style={styles.infoPopoverTitle}>Open Box Definitions</div>
-                      <div style={styles.infoLine}>
-                        <strong>VIP</strong> — minimum to no creak
-                      </div>
-                      <div style={styles.infoLine}>
-                        <strong>Sellable</strong> — slight creak
-                      </div>
-                      <div style={styles.infoLine}>
-                        <strong>Warranty</strong> — most creak, build quality issue
-                      </div>
-                    </div>
-                  )}
-                </div>
-              }
+              infoButton={openBoxInfoButton}
             />
+
+            <OpenBoxBreakdownCard office={office} />
 
             <StatusCard
               title="Warranty"
@@ -405,159 +465,22 @@ export default function Page() {
               standard={office.status.warranty.standard}
               kids={office.status.warranty.kids}
             />
-          </div>
 
-          <div className="two-column-layout" style={styles.twoColumnLayout}>
-            <div style={{ ...styles.card, ...styles.tableCard }}>
-              <div style={styles.cardHeader}>
-                <h3 style={styles.cardTitle}>Open Box Breakdown</h3>
-              </div>
+            <TopWarrantyIssuesCard issues={topWarrantyIssues} />
 
-              <div style={styles.openBoxBreakdownList}>
-                <BreakdownRow
-                  label="VIP"
-                  total={office.openBoxBreakdown.vip.total}
-                  standard={office.openBoxBreakdown.vip.standard}
-                  kids={office.openBoxBreakdown.vip.kids}
-                />
-                <BreakdownRow
-                  label="Sellable"
-                  total={office.openBoxBreakdown.sellable.total}
-                  standard={office.openBoxBreakdown.sellable.standard}
-                  kids={office.openBoxBreakdown.sellable.kids}
-                />
-                <BreakdownRow
-                  label="Warranty Grade"
-                  total={office.openBoxBreakdown.warrantyGrade.total}
-                  standard={office.openBoxBreakdown.warrantyGrade.standard}
-                  kids={office.openBoxBreakdown.warrantyGrade.kids}
-                />
-              </div>
-            </div>
+            <AllWarrantyIssuesCard
+              items={sortedWarrantyIssues}
+              max={warrantyIssueMax}
+              sort={warrantyIssueSort}
+              onSortChange={setWarrantyIssueSort}
+            />
 
-            <div style={{ ...styles.card, ...styles.tableCard }}>
-              <div style={styles.cardHeader}>
-                <h3 style={styles.cardTitle}>Top Warranty Issues in Office</h3>
-              </div>
-
-              <div style={styles.simpleList}>
-                {topWarrantyIssues.map((issue) => (
-                  <div key={issue.label} style={styles.simpleListRow}>
-                    <div style={styles.simpleListLabel}>{issue.label}</div>
-                    <div style={styles.simpleListValue}>{issue.total}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="two-column-layout" style={styles.twoColumnLayout}>
-            <div style={{ ...styles.card, ...styles.tableCard }}>
-              <div style={styles.cardHeader}>
-                <h3 style={styles.cardTitle}>Office Accessories</h3>
-              </div>
-
-              <div style={styles.dataTable}>
-                <div className="table-header-accessory" style={styles.tableHeaderAccessory}>
-                  <button
-                    type="button"
-                    onClick={() => setOfficeAccessorySort("name")}
-                    style={{
-                      ...styles.sortHeaderButton,
-                      ...(officeAccessorySort === "name"
-                        ? styles.sortHeaderButtonActive
-                        : {}),
-                    }}
-                  >
-                    Name
-                  </button>
-                  <div />
-                  <button
-                    type="button"
-                    onClick={() => setOfficeAccessorySort("total")}
-                    style={{
-                      ...styles.sortHeaderButton,
-                      ...(officeAccessorySort === "total"
-                        ? styles.sortHeaderButtonActive
-                        : {}),
-                    }}
-                  >
-                    Total
-                  </button>
-                </div>
-
-                {sortedOfficeAccessories.map((item) => (
-                  <div
-                    key={item.label}
-                    className="table-row-accessory"
-                    style={styles.tableRowAccessory}
-                  >
-                    <div style={styles.primaryTextNoMargin}>{item.label}</div>
-                    <ProgressBar
-                      value={Math.abs(item.value)}
-                      max={officeAccessoryMax}
-                    />
-                    <div style={styles.numberCell}>{item.value}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div style={{ ...styles.card, ...styles.tableCard }}>
-              <div style={styles.cardHeader}>
-                <h3 style={styles.cardTitle}>All Warranty Issues</h3>
-              </div>
-
-              <div style={styles.dataTable}>
-                <div className="table-header-warranty" style={styles.tableHeaderWarranty}>
-                  <button
-                    type="button"
-                    onClick={() => setWarrantyIssueSort("name")}
-                    style={{
-                      ...styles.sortHeaderButton,
-                      ...(warrantyIssueSort === "name"
-                        ? styles.sortHeaderButtonActive
-                        : {}),
-                    }}
-                  >
-                    Issue
-                  </button>
-                  <div />
-                  <button
-                    type="button"
-                    onClick={() => setWarrantyIssueSort("total")}
-                    style={{
-                      ...styles.sortHeaderButton,
-                      ...(warrantyIssueSort === "total"
-                        ? styles.sortHeaderButtonActive
-                        : {}),
-                    }}
-                  >
-                    Total
-                  </button>
-                </div>
-
-                {sortedWarrantyIssues.map((issue) => (
-                  <div
-                    key={issue.label}
-                    className="table-row-warranty"
-                    style={styles.tableRowWarranty}
-                  >
-                    <div>
-                      <div style={styles.primaryTextNoMargin}>{issue.label}</div>
-                      <div style={styles.warrantySplitTiny}>
-                        S {issue.standard} / K {issue.kids}
-                      </div>
-                    </div>
-                    <ProgressBar
-                      value={issue.total}
-                      max={warrantyIssueMax}
-                    />
-                    <div style={styles.numberCell}>{issue.total}</div>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <OfficeAccessoriesCard
+              items={sortedOfficeAccessories}
+              max={officeAccessoryMax}
+              sort={officeAccessorySort}
+              onSortChange={setOfficeAccessorySort}
+            />
           </div>
         </section>
       ) : (
@@ -583,35 +506,12 @@ export default function Page() {
             />
           </div>
 
-          <div style={{ ...styles.card, ...styles.tableCard, marginTop: 24 }}>
-            <div style={styles.cardHeader}>
-              <h3 style={styles.cardTitle}>DCL Accessories</h3>
-            </div>
-
-            <div style={styles.dataTable}>
-              <div className="table-header-dcl" style={styles.tableHeaderDcl}>
-                <div>SKU</div>
-                <div>Description</div>
-                <div />
-                <div>Total</div>
-              </div>
-
-              {dcl.accessories.map((item) => (
-                <div
-                  key={`${item.sku}-${item.description}`}
-                  className="table-row-dcl"
-                  style={styles.tableRowDcl}
-                >
-                  <div style={styles.mutedCell}>{item.sku}</div>
-                  <div style={styles.primaryTextNoMargin}>
-                    {item.description || "No description"}
-                  </div>
-                  <ProgressBar value={Math.abs(item.quantity)} max={dclAccessoryMax} />
-                  <div style={styles.numberCell}>{item.quantity}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <DclAccessoriesCard
+            items={sortedDclAccessories}
+            max={dclAccessoryMax}
+            sort={dclAccessorySort}
+            onSortChange={setDclAccessorySort}
+          />
         </section>
       )}
 
@@ -619,6 +519,7 @@ export default function Page() {
     </main>
   );
 }
+
 function MobileFloatingSwitch({
   view,
   onChange,
@@ -648,6 +549,42 @@ function MobileFloatingSwitch({
       >
         DCL
       </button>
+    </div>
+  );
+}
+
+function OpenBoxInfoButton({
+  show,
+  onToggle,
+}: {
+  show: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <div style={styles.infoWrapper}>
+      <button
+        onClick={onToggle}
+        style={styles.infoButton}
+        aria-label="Open box definitions"
+        title="Open box definitions"
+      >
+        i
+      </button>
+
+      {show && (
+        <div className="open-box-info-popover" style={styles.infoPopover}>
+          <div style={styles.infoPopoverTitle}>Open Box Definitions</div>
+          <div style={styles.infoLine}>
+            <strong>VIP</strong> — minimum to no creak
+          </div>
+          <div style={styles.infoLine}>
+            <strong>Sellable</strong> — slight creak
+          </div>
+          <div style={styles.infoLine}>
+            <strong>Warranty</strong> — most creak, build quality issue
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -723,6 +660,239 @@ function StatusCard({
     </div>
   );
 }
+function OpenBoxBreakdownCard({ office }: { office: OfficeData }) {
+  return (
+    <div style={{ ...styles.card, ...styles.tableCard }}>
+      <div style={styles.cardHeader}>
+        <h3 style={styles.cardTitle}>Open Box Breakdown</h3>
+      </div>
+
+      <div style={styles.openBoxBreakdownList}>
+        <BreakdownRow
+          label="VIP"
+          total={office.openBoxBreakdown.vip.total}
+          standard={office.openBoxBreakdown.vip.standard}
+          kids={office.openBoxBreakdown.vip.kids}
+        />
+        <BreakdownRow
+          label="Sellable"
+          total={office.openBoxBreakdown.sellable.total}
+          standard={office.openBoxBreakdown.sellable.standard}
+          kids={office.openBoxBreakdown.sellable.kids}
+        />
+        <BreakdownRow
+          label="Warranty Grade"
+          total={office.openBoxBreakdown.warrantyGrade.total}
+          standard={office.openBoxBreakdown.warrantyGrade.standard}
+          kids={office.openBoxBreakdown.warrantyGrade.kids}
+        />
+      </div>
+    </div>
+  );
+}
+
+function TopWarrantyIssuesCard({ issues }: { issues: WarrantyIssue[] }) {
+  return (
+    <div style={{ ...styles.card, ...styles.tableCard }}>
+      <div style={styles.cardHeader}>
+        <h3 style={styles.cardTitle}>Top Warranty Issues in Office</h3>
+      </div>
+
+      <div style={styles.simpleList}>
+        {issues.map((issue) => (
+          <div key={issue.label} style={styles.simpleListRow}>
+            <div style={styles.simpleListLabel}>{issue.label}</div>
+            <div style={styles.simpleListValue}>{issue.total}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function OfficeAccessoriesCard({
+  items,
+  max,
+  sort,
+  onSortChange,
+}: {
+  items: OfficeAccessory[];
+  max: number;
+  sort: SortMode;
+  onSortChange: (sort: SortMode) => void;
+}) {
+  return (
+    <div style={{ ...styles.card, ...styles.tableCard }}>
+      <div style={styles.cardHeader}>
+        <h3 style={styles.cardTitle}>Office Accessories</h3>
+      </div>
+
+      <div style={styles.dataTable}>
+        <div className="table-header-accessory" style={styles.tableHeaderAccessory}>
+          <button
+            type="button"
+            onClick={() => onSortChange("name")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "name" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Name
+          </button>
+          <div />
+          <button
+            type="button"
+            onClick={() => onSortChange("total")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "total" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Total
+          </button>
+        </div>
+
+        {items.map((item) => (
+          <div
+            key={item.label}
+            className="table-row-accessory"
+            style={styles.tableRowAccessory}
+          >
+            <div style={styles.primaryTextNoMargin}>{item.label}</div>
+            <ProgressBar value={Math.abs(item.value)} max={max} />
+            <div style={styles.numberCell}>{item.value}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function AllWarrantyIssuesCard({
+  items,
+  max,
+  sort,
+  onSortChange,
+}: {
+  items: WarrantyIssue[];
+  max: number;
+  sort: SortMode;
+  onSortChange: (sort: SortMode) => void;
+}) {
+  return (
+    <div style={{ ...styles.card, ...styles.tableCard }}>
+      <div style={styles.cardHeader}>
+        <h3 style={styles.cardTitle}>All Warranty Issues</h3>
+      </div>
+
+      <div style={styles.dataTable}>
+        <div className="table-header-warranty" style={styles.tableHeaderWarranty}>
+          <button
+            type="button"
+            onClick={() => onSortChange("name")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "name" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Issue
+          </button>
+          <div />
+          <button
+            type="button"
+            onClick={() => onSortChange("total")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "total" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Total
+          </button>
+        </div>
+
+        {items.map((issue) => (
+          <div
+            key={issue.label}
+            className="table-row-warranty"
+            style={styles.tableRowWarranty}
+          >
+            <div>
+              <div style={styles.primaryTextNoMargin}>{issue.label}</div>
+              <div style={styles.warrantySplitTiny}>
+                S {issue.standard} / K {issue.kids}
+              </div>
+            </div>
+            <ProgressBar value={issue.total} max={max} />
+            <div style={styles.numberCell}>{issue.total}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function DclAccessoriesCard({
+  items,
+  max,
+  sort,
+  onSortChange,
+}: {
+  items: DclAccessory[];
+  max: number;
+  sort: SortMode;
+  onSortChange: (sort: SortMode) => void;
+}) {
+  return (
+    <div style={{ ...styles.card, ...styles.tableCard, marginTop: 24 }}>
+      <div style={styles.cardHeader}>
+        <h3 style={styles.cardTitle}>DCL Accessories</h3>
+      </div>
+
+      <div style={styles.dataTable}>
+        <div className="table-header-dcl" style={styles.tableHeaderDcl}>
+          <button
+            type="button"
+            onClick={() => onSortChange("name")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "name" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Name
+          </button>
+          <div />
+          <button
+            type="button"
+            onClick={() => onSortChange("total")}
+            style={{
+              ...styles.sortHeaderButton,
+              ...(sort === "total" ? styles.sortHeaderButtonActive : {}),
+            }}
+          >
+            Total
+          </button>
+        </div>
+
+        {items.map((item) => (
+          <div
+            key={`${item.sku}-${item.description}`}
+            className="table-row-dcl"
+            style={styles.tableRowDcl}
+          >
+            <div>
+              <div style={styles.primaryTextNoMargin}>
+                {item.description || "No description"}
+              </div>
+              <div style={styles.warrantySplitTiny}>SKU {item.sku}</div>
+            </div>
+            <ProgressBar value={Math.abs(item.quantity)} max={max} />
+            <div style={styles.numberCell}>{item.quantity}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 function BreakdownRow({
   label,
@@ -779,6 +949,18 @@ function ResponsiveStyles() {
           display: flex !important;
         }
 
+        .hero-intro-card {
+          display: none !important;
+        }
+
+        .office-desktop-layout {
+          display: none !important;
+        }
+
+        .office-mobile-layout {
+          display: grid !important;
+        }
+
         .hero-grid {
           margin-top: 76px !important;
           padding-left: 14px !important;
@@ -806,16 +988,10 @@ function ResponsiveStyles() {
         .table-header-accessory,
         .table-row-accessory,
         .table-header-warranty,
-        .table-row-warranty {
-          grid-template-columns: minmax(0, 1fr) 56px 52px !important;
-          gap: 8px !important;
-          padding-left: 10px !important;
-          padding-right: 10px !important;
-        }
-
+        .table-row-warranty,
         .table-header-dcl,
         .table-row-dcl {
-          grid-template-columns: 42px minmax(0, 1fr) 52px 58px !important;
+          grid-template-columns: minmax(0, 1fr) 56px 52px !important;
           gap: 8px !important;
           padding-left: 10px !important;
           padding-right: 10px !important;
@@ -824,7 +1000,6 @@ function ResponsiveStyles() {
     `}</style>
   );
 }
-
 function BackgroundGlow() {
   return (
     <>
@@ -907,6 +1082,11 @@ const styles: Record<string, CSSProperties> = {
     background: "#171717",
     color: "#fff",
   },
+  officeMobileLayout: {
+    display: "none",
+    gap: 12,
+    marginTop: 14,
+  },
   heroGrid: {
     maxWidth: 1220,
     margin: "28px auto 0",
@@ -961,7 +1141,7 @@ const styles: Record<string, CSSProperties> = {
     color: "#fff",
     border: "1px solid #171717",
   },
-    helperText: {
+  helperText: {
     marginTop: 14,
     fontSize: 14,
     color: "#78716c",
@@ -1020,6 +1200,10 @@ const styles: Record<string, CSSProperties> = {
   subsectionHeader: {
     marginTop: 26,
     marginBottom: 14,
+  },
+  mobileSubsectionHeader: {
+    marginTop: 10,
+    marginBottom: 0,
   },
   subsectionTitle: {
     margin: 0,
@@ -1241,7 +1425,7 @@ const styles: Record<string, CSSProperties> = {
   },
   tableHeaderDcl: {
     display: "grid",
-    gridTemplateColumns: "90px 1fr 120px 90px",
+    gridTemplateColumns: "1fr 120px 90px",
     gap: 16,
     padding: "14px 16px",
     background: "#efede7",
@@ -1253,7 +1437,7 @@ const styles: Record<string, CSSProperties> = {
   },
   tableRowDcl: {
     display: "grid",
-    gridTemplateColumns: "90px 1fr 120px 90px",
+    gridTemplateColumns: "1fr 120px 90px",
     gap: 16,
     padding: "14px 16px",
     borderTop: "1px solid rgba(120, 113, 108, 0.12)",
@@ -1267,10 +1451,6 @@ const styles: Record<string, CSSProperties> = {
     overflow: "hidden",
     textOverflow: "ellipsis",
     whiteSpace: "nowrap",
-  },
-  mutedCell: {
-    fontSize: 14,
-    color: "#57534e",
   },
   numberCell: {
     textAlign: "right",
