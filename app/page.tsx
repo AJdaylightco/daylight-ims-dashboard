@@ -67,10 +67,120 @@ type DashboardPayload = {
   error?: string;
 };
 
-type ViewMode = "office" | "dcl";
+type ViewMode = "office" | "dcl" | "locator";
 type SortMode = "name" | "total";
 
+type LocatorCategory =
+  | "All"
+  | "Standard DC-1"
+  | "DC-1 Kids"
+  | "Warranty"
+  | "Accessories"
+  | "Mixed";
+
+type LocatorRack = {
+  rack: string;
+  item: string;
+};
+
+type LocatorSection = {
+  title: string;
+  category: Exclude<LocatorCategory, "All">;
+  racks: LocatorRack[];
+};
+
 const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
+
+const LOCATOR_FILTERS: LocatorCategory[] = [
+  "All",
+  "Standard DC-1",
+  "DC-1 Kids",
+  "Warranty",
+  "Accessories",
+  "Mixed",
+];
+
+const LOCATOR_SECTIONS: LocatorSection[] = [
+  {
+    title: "Shelf 1",
+    category: "Standard DC-1",
+    racks: [
+      { rack: "Rack A, B, C", item: "New Units" },
+      { rack: "Rack D, E", item: "Open Box Units" },
+    ],
+  },
+  {
+    title: "Shelf 2",
+    category: "Standard DC-1",
+    racks: [
+      { rack: "Rack A", item: "Refurbished" },
+      { rack: "Rack B", item: "Open Box, Warranty Creak" },
+      { rack: "Rack C, D", item: "Warranty Creak" },
+    ],
+  },
+  {
+    title: "Shelf 3",
+    category: "DC-1 Kids",
+    racks: [
+      { rack: "Rack A", item: "New Kids DC-1" },
+      { rack: "Rack B, C, D", item: "Open Box Kids DC-1" },
+    ],
+  },
+  {
+    title: "Shelf 4",
+    category: "Warranty",
+    racks: [
+      { rack: "Rack A", item: "N/A" },
+      { rack: "Rack B", item: "Build Quality" },
+      {
+        rack: "Rack C",
+        item: "Liquid Crystal Leakage, WiFi Issues, Charging / Port Issue, Blank Screen Backlight On, Stylus, Dead Pixel",
+      },
+      { rack: "Rack D", item: "Charging / Port Issue, WiFi Issues" },
+      { rack: "Rack E", item: "N/A" },
+      { rack: "Rack F", item: "Dead Pixel, WiFi Issues" },
+    ],
+  },
+  {
+    title: "Shelf 5",
+    category: "Accessories",
+    racks: [
+      { rack: "Rack C", item: "Kids Cases" },
+      { rack: "Rack D", item: "Comfy Sleeves" },
+    ],
+  },
+  {
+    title: "Shelf 6",
+    category: "DC-1 Kids",
+    racks: [
+      { rack: "Rack A", item: "VIP" },
+      { rack: "Rack B", item: "Sellable" },
+      { rack: "Rack C", item: "Warranty Grade Creak" },
+      { rack: "Rack D", item: "Warranty" },
+    ],
+  },
+  {
+    title: "Shelf 7",
+    category: "Accessories",
+    racks: [
+      { rack: "Rack A", item: "Daylight Keyboards" },
+      { rack: "Rack B", item: "Lightbulbs" },
+    ],
+  },
+  {
+    title: "Closet",
+    category: "Mixed",
+    racks: [
+      { rack: "Rack A", item: "Sling" },
+      { rack: "Rack B", item: "Stands" },
+      { rack: "Rack C", item: "Warranty Creak Grade" },
+      { rack: "Rack D", item: "Lightbulb Fixture" },
+      { rack: "Rack E", item: "Kids Cases" },
+      { rack: "Rack F", item: "Comfy Sleeve and Lamy" },
+      { rack: "Rack G", item: "Pre-MP Units" },
+    ],
+  },
+];
 
 const FALLBACK_DATA: DashboardPayload = {
   ok: true,
@@ -112,7 +222,7 @@ const FALLBACK_DATA: DashboardPayload = {
       { label: "37-2 (ST64 Bright 60W)", value: 6 },
       { label: "41 - (G80 Red)", value: 8 },
     ],
-    warrantyIssues: [
+        warrantyIssues: [
       { label: "Anti-glare film peeling", total: 0, standard: 0, kids: 0 },
       { label: "Blank screen, backlight on", total: 8, standard: 8, kids: 0 },
       { label: "Build Quality", total: 27, standard: 20, kids: 7 },
@@ -183,6 +293,7 @@ const FALLBACK_DATA: DashboardPayload = {
     ],
   },
 };
+
 export default function Page() {
   const [view, setView] = useState<ViewMode>("office");
   const [data, setData] = useState<DashboardPayload>(FALLBACK_DATA);
@@ -192,6 +303,8 @@ export default function Page() {
   const [officeAccessorySort, setOfficeAccessorySort] = useState<SortMode>("total");
   const [warrantyIssueSort, setWarrantyIssueSort] = useState<SortMode>("total");
   const [dclAccessorySort, setDclAccessorySort] = useState<SortMode>("total");
+  const [locatorSearch, setLocatorSearch] = useState("");
+  const [locatorCategory, setLocatorCategory] = useState<LocatorCategory>("All");
 
   useEffect(() => {
     if (!API_URL) {
@@ -271,15 +384,33 @@ export default function Page() {
     const items = [...dcl.accessories];
 
     if (dclAccessorySort === "name") {
-      return items.sort((a, b) =>
-        a.description.localeCompare(b.description)
-      );
+      return items.sort((a, b) => a.description.localeCompare(b.description));
     }
 
     return items.sort((a, b) => b.quantity - a.quantity);
   }, [dcl.accessories, dclAccessorySort]);
 
-  const officeAccessoryMax = Math.max(
+  const filteredLocatorSections = useMemo(() => {
+    const searchValue = locatorSearch.trim().toLowerCase();
+
+    return LOCATOR_SECTIONS.filter((section) => {
+      const matchesCategory =
+        locatorCategory === "All" || section.category === locatorCategory;
+
+      const searchText = [
+        section.title,
+        section.category,
+        ...section.racks.flatMap((rack) => [rack.rack, rack.item]),
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      const matchesSearch = !searchValue || searchText.includes(searchValue);
+
+      return matchesCategory && matchesSearch;
+    });
+  }, [locatorCategory, locatorSearch]);
+    const officeAccessoryMax = Math.max(
     1,
     ...office.accessories.map((item) => Math.abs(item.value))
   );
@@ -292,13 +423,6 @@ export default function Page() {
   const dclAccessoryMax = Math.max(
     1,
     ...dcl.accessories.map((item) => Math.abs(item.quantity))
-  );
-
-  const openBoxInfoButton = (
-    <OpenBoxInfoButton
-      show={showOpenBoxInfo}
-      onToggle={() => setShowOpenBoxInfo((prev) => !prev)}
-    />
   );
 
   return (
@@ -314,6 +438,7 @@ export default function Page() {
 
           <div style={styles.heroButtons}>
             <button
+              type="button"
               style={{
                 ...styles.pillButton,
                 ...(view === "office" ? styles.pillButtonActive : {}),
@@ -323,6 +448,7 @@ export default function Page() {
               Office Inventory
             </button>
             <button
+              type="button"
               style={{
                 ...styles.pillButton,
                 ...(view === "dcl" ? styles.pillButtonActive : {}),
@@ -330,6 +456,16 @@ export default function Page() {
               onClick={() => setView("dcl")}
             >
               DCL Inventory
+            </button>
+            <button
+              type="button"
+              style={{
+                ...styles.pillButton,
+                ...(view === "locator" ? styles.pillButtonActive : {}),
+              }}
+              onClick={() => setView("locator")}
+            >
+              Locator
             </button>
           </div>
 
@@ -387,7 +523,12 @@ export default function Page() {
                 helper="VIP, Sellable, or Warranty Grade"
                 standard={office.status.openBox.standard}
                 kids={office.status.openBox.kids}
-                infoButton={openBoxInfoButton}
+                infoButton={
+                  <OpenBoxInfoButton
+                    show={showOpenBoxInfo}
+                    onToggle={() => setShowOpenBoxInfo((prev) => !prev)}
+                  />
+                }
               />
 
               <StatusCard
@@ -398,6 +539,7 @@ export default function Page() {
                 kids={office.status.warranty.kids}
               />
             </div>
+
             <div className="two-column-layout" style={styles.twoColumnLayout}>
               <OpenBoxBreakdownCard office={office} />
 
@@ -453,7 +595,12 @@ export default function Page() {
               helper="VIP, Sellable, or Warranty Grade"
               standard={office.status.openBox.standard}
               kids={office.status.openBox.kids}
-              infoButton={openBoxInfoButton}
+              infoButton={
+                <OpenBoxInfoButton
+                  show={showOpenBoxInfo}
+                  onToggle={() => setShowOpenBoxInfo((prev) => !prev)}
+                />
+              }
             />
 
             <OpenBoxBreakdownCard office={office} />
@@ -483,7 +630,7 @@ export default function Page() {
             />
           </div>
         </section>
-      ) : (
+      ) : view === "dcl" ? (
         <section style={styles.section}>
           <h2 style={styles.sectionTitle}>DCL Inventory</h2>
 
@@ -513,13 +660,20 @@ export default function Page() {
             onSortChange={setDclAccessorySort}
           />
         </section>
+      ) : (
+        <LocatorView
+          search={locatorSearch}
+          category={locatorCategory}
+          sections={filteredLocatorSections}
+          onSearchChange={setLocatorSearch}
+          onCategoryChange={setLocatorCategory}
+        />
       )}
 
       <FloatingMark />
     </main>
   );
 }
-
 function MobileFloatingSwitch({
   view,
   onChange,
@@ -549,6 +703,109 @@ function MobileFloatingSwitch({
       >
         DCL
       </button>
+      <button
+        type="button"
+        onClick={() => onChange("locator")}
+        style={{
+          ...styles.mobileFloatingButton,
+          ...(view === "locator" ? styles.mobileFloatingButtonActive : {}),
+        }}
+      >
+        Locator
+      </button>
+    </div>
+  );
+}
+
+function LocatorView({
+  search,
+  category,
+  sections,
+  onSearchChange,
+  onCategoryChange,
+}: {
+  search: string;
+  category: LocatorCategory;
+  sections: LocatorSection[];
+  onSearchChange: (value: string) => void;
+  onCategoryChange: (value: LocatorCategory) => void;
+}) {
+  return (
+    <section style={styles.section}>
+      <div style={styles.locatorHeader}>
+        <h2 style={styles.sectionTitle}>Locator</h2>
+        <p style={styles.locatorSummary}>
+          Find where units and accessories are stored in the office.
+        </p>
+      </div>
+
+      <div style={styles.locatorControls}>
+        <input
+          value={search}
+          onChange={(event) => onSearchChange(event.target.value)}
+          placeholder="Search shelf, rack, or item..."
+          style={styles.locatorSearchInput}
+        />
+
+        <div style={styles.locatorFilterRow}>
+          {LOCATOR_FILTERS.map((filter) => (
+            <button
+              key={filter}
+              type="button"
+              onClick={() => onCategoryChange(filter)}
+              style={{
+                ...styles.locatorChip,
+                ...(category === filter ? styles.locatorChipActive : {}),
+              }}
+            >
+              {filter}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {sections.length > 0 ? (
+        <div className="locator-grid" style={styles.locatorGrid}>
+          {sections.map((section) => (
+            <LocatorCard key={section.title} section={section} />
+          ))}
+        </div>
+      ) : (
+        <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>
+          No matching storage areas found.
+        </div>
+      )}
+    </section>
+  );
+}
+
+function LocatorCard({ section }: { section: LocatorSection }) {
+  return (
+    <div style={{ ...styles.card, ...styles.locatorCard }}>
+      <div style={styles.locatorCardHeader}>
+        <div>
+          <h3 style={styles.locatorShelfTitle}>{section.title}</h3>
+        </div>
+        <span style={styles.locatorBadge}>{section.category}</span>
+      </div>
+
+      <div style={styles.locatorRackList}>
+        {section.racks.map((rack) => (
+          <LocatorRackRow
+            key={`${section.title}-${rack.rack}-${rack.item}`}
+            rack={rack}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function LocatorRackRow({ rack }: { rack: LocatorRack }) {
+  return (
+    <div className="locator-rack-row" style={styles.locatorRackRow}>
+      <div style={styles.locatorRackName}>{rack.rack}</div>
+      <div style={styles.locatorRackItem}>{rack.item}</div>
     </div>
   );
 }
@@ -563,6 +820,7 @@ function OpenBoxInfoButton({
   return (
     <div style={styles.infoWrapper}>
       <button
+        type="button"
         onClick={onToggle}
         style={styles.infoButton}
         aria-label="Open box definitions"
@@ -935,7 +1193,8 @@ function ResponsiveStyles() {
         .hero-grid,
         .card-grid-3,
         .card-grid-4,
-        .two-column-layout {
+        .two-column-layout,
+        .locator-grid {
           grid-template-columns: 1fr !important;
         }
       }
@@ -995,6 +1254,11 @@ function ResponsiveStyles() {
           gap: 8px !important;
           padding-left: 10px !important;
           padding-right: 10px !important;
+        }
+
+        .locator-rack-row {
+          grid-template-columns: 1fr !important;
+          gap: 6px !important;
         }
       }
     `}</style>
@@ -1072,8 +1336,8 @@ const styles: Record<string, CSSProperties> = {
     border: "none",
     background: "transparent",
     borderRadius: 999,
-    padding: "9px 14px",
-    fontSize: 14,
+    padding: "9px 12px",
+    fontSize: 13,
     fontWeight: 700,
     color: "#57534e",
     cursor: "pointer",
@@ -1468,6 +1732,110 @@ const styles: Record<string, CSSProperties> = {
     height: "100%",
     borderRadius: 999,
     background: "linear-gradient(90deg, #f0b766 0%, #d7a556 100%)",
+  },
+  locatorHeader: {
+    marginBottom: 18,
+  },
+  locatorSummary: {
+    margin: "10px 0 0",
+    fontSize: 16,
+    color: "#78716c",
+  },
+  locatorControls: {
+    display: "grid",
+    gap: 14,
+    marginTop: 18,
+    marginBottom: 20,
+  },
+  locatorSearchInput: {
+    width: "100%",
+    boxSizing: "border-box",
+    border: "1px solid rgba(120, 113, 108, 0.18)",
+    background: "rgba(255,255,255,0.72)",
+    borderRadius: 18,
+    padding: "14px 16px",
+    fontSize: 15,
+    color: "#292524",
+    outline: "none",
+    boxShadow: "0 8px 22px rgba(28,25,23,0.04)",
+  },
+  locatorFilterRow: {
+    display: "flex",
+    gap: 10,
+    flexWrap: "wrap",
+  },
+  locatorChip: {
+    border: "1px solid rgba(120, 113, 108, 0.18)",
+    background: "rgba(255,255,255,0.7)",
+    color: "#57534e",
+    borderRadius: 999,
+    padding: "9px 13px",
+    fontSize: 13,
+    fontWeight: 700,
+    cursor: "pointer",
+  },
+  locatorChipActive: {
+    background: "#171717",
+    color: "#fff",
+    border: "1px solid #171717",
+  },
+  locatorGrid: {
+    display: "grid",
+    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+    gap: 18,
+  },
+  locatorCard: {
+    padding: 0,
+    overflow: "hidden",
+  },
+  locatorCardHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    padding: "18px 18px 14px",
+    borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
+  },
+  locatorShelfTitle: {
+    margin: 0,
+    fontSize: 22,
+    fontWeight: 760,
+    letterSpacing: "-0.02em",
+  },
+  locatorBadge: {
+    borderRadius: 999,
+    background: "#f2ecd9",
+    color: "#9a3412",
+    padding: "7px 10px",
+    fontSize: 12,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  locatorRackList: {
+    display: "grid",
+  },
+  locatorRackRow: {
+    display: "grid",
+    gridTemplateColumns: "120px 1fr",
+    gap: 14,
+    padding: "14px 18px",
+    borderTop: "1px solid rgba(120, 113, 108, 0.1)",
+    alignItems: "start",
+  },
+  locatorRackName: {
+    fontSize: 14,
+    fontWeight: 800,
+    color: "#292524",
+  },
+  locatorRackItem: {
+    fontSize: 14,
+    color: "#57534e",
+    lineHeight: 1.45,
+  },
+  emptyLocatorCard: {
+    marginTop: 18,
+    color: "#78716c",
+    fontSize: 15,
   },
   glowOne: {
     position: "fixed",
