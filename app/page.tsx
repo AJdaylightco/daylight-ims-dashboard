@@ -109,12 +109,12 @@ type LocatorResult = LocatorRack & {
 const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
 
 const LOCATOR_FILTERS: LocatorFilter[] = [
+  "Accessories",
   "New DC-1",
   "New Kids DC-1",
   "Open Box DC-1",
   "Open Box Kids DC-1",
   "Warranty DC-1",
-  "Accessories",
 ];
 
 const LOCATOR_SECTIONS: LocatorSection[] = [
@@ -178,7 +178,7 @@ const LOCATOR_SECTIONS: LocatorSection[] = [
     title: "Shelf 4",
     category: "Warranty",
     racks: [
-            { rack: "Rack A", item: "N/A", filters: [] },
+              { rack: "Rack A", item: "N/A", filters: [] },
       {
         rack: "Rack B",
         item: "Build Quality",
@@ -526,6 +526,7 @@ export default function Page() {
 
   const locatorResults = useMemo(() => {
     const searchValue = locatorSearch.trim().toLowerCase();
+    const isSearching = searchValue.length > 0;
 
     return LOCATOR_SECTIONS.flatMap((section) =>
       section.racks.map((rack) => ({
@@ -533,25 +534,43 @@ export default function Page() {
         category: section.category,
         ...rack,
       }))
-    ).filter((result) => {
-      const matchesFilter = locatorCategory
-        ? result.filters.includes(locatorCategory)
-        : true;
-              const searchText = [
-        result.shelf,
-        result.category,
-        result.rack,
-        result.item,
-        ...result.filters,
-        ...(result.searchTerms || []),
-      ]
-        .join(" ")
-        .toLowerCase();
+    )
+      .filter((result) => {
+        const matchesFilter =
+          isSearching || !locatorCategory
+            ? true
+                        : result.filters.includes(locatorCategory);
 
-      const matchesSearch = !searchValue || searchText.includes(searchValue);
+        const searchText = [
+          result.shelf,
+          result.category,
+          result.rack,
+          result.item,
+          ...result.filters,
+          ...(result.searchTerms || []),
+        ]
+          .join(" ")
+          .toLowerCase();
 
-      return matchesFilter && matchesSearch;
-    });
+        const matchesSearch = !searchValue || searchText.includes(searchValue);
+
+        return matchesFilter && matchesSearch;
+      })
+      .sort((a, b) => {
+        const itemCompare = a.item.localeCompare(b.item);
+
+        if (itemCompare !== 0) {
+          return itemCompare;
+        }
+
+        const shelfCompare = a.shelf.localeCompare(b.shelf);
+
+        if (shelfCompare !== 0) {
+          return shelfCompare;
+        }
+
+        return a.rack.localeCompare(b.rack);
+      });
   }, [locatorCategory, locatorSearch]);
 
   const showLocatorResults =
@@ -685,8 +704,7 @@ export default function Page() {
                 kids={office.status.warranty.kids}
               />
             </div>
-
-            <div className="two-column-layout" style={styles.twoColumnLayout}>
+                        <div className="two-column-layout" style={styles.twoColumnLayout}>
               <OpenBoxBreakdownCard office={office} />
 
               <TopWarrantyIssuesCard issues={topWarrantyIssues} />
@@ -717,7 +735,7 @@ export default function Page() {
             <OverviewMetricCard
               label="Standard DC-1s"
               value={office.overview.standard}
-                          />
+            />
             <OverviewMetricCard
               label="Kid DC-1s"
               value={office.overview.kids}
@@ -841,7 +859,7 @@ function MobileFloatingSwitch({
       >
         Office
       </button>
-      <button
+            <button
         type="button"
         onClick={() => onChange("dcl")}
         style={{
@@ -897,12 +915,18 @@ function LocatorView({
         <p style={styles.locatorSummary}>
           Find where units and accessories are stored in the office.
         </p>
-              </div>
+      </div>
 
       <div style={styles.locatorControls}>
         <input
           value={search}
-          onChange={(event) => onSearchChange(event.target.value)}
+          onChange={(event) => {
+            onSearchChange(event.target.value);
+
+            if (event.target.value.trim().length > 0) {
+              onCategoryChange(null);
+            }
+          }}
           placeholder="Search shelf, rack, item, or category..."
           style={styles.locatorSearchInput}
         />
@@ -985,7 +1009,7 @@ function LocatorCard({ section }: { section: LocatorSection }) {
         ))}
       </div>
     </div>
-  );
+      );
 }
 
 function LocatorRackRow({ rack }: { rack: LocatorRack }) {
@@ -1077,7 +1101,7 @@ function OverviewMetricCard({
       <div style={styles.metricLabel}>{label}</div>
       <div style={styles.metricValue}>{formatNumber(value)}</div>
     </div>
-      );
+  );
 }
 
 function StatusCard({
@@ -1133,7 +1157,7 @@ function OpenBoxBreakdownCard({ office }: { office: OfficeData }) {
           label="VIP"
           total={office.openBoxBreakdown.vip.total}
           standard={office.openBoxBreakdown.vip.standard}
-          kids={office.openBoxBreakdown.vip.kids}
+                    kids={office.openBoxBreakdown.vip.kids}
         />
         <BreakdownRow
           label="Sellable"
@@ -1257,7 +1281,7 @@ function AllWarrantyIssuesCard({
             }}
           >
             Issue
-                      </button>
+          </button>
           <div />
           <button
             type="button"
@@ -1279,7 +1303,7 @@ function AllWarrantyIssuesCard({
           >
             <div>
               <div style={styles.primaryTextNoMargin}>{issue.label}</div>
-              <div style={styles.warrantySplitTiny}>
+                            <div style={styles.warrantySplitTiny}>
                 S {issue.standard} / K {issue.kids}
               </div>
             </div>
@@ -1435,8 +1459,9 @@ function ResponsiveStyles() {
         .two-column-layout {
           gap: 12px !important;
           margin-top: 14px !important;
-        }
-                  .open-box-info-popover {
+                  }
+
+        .open-box-info-popover {
           position: fixed !important;
           top: 88px !important;
           left: 16px !important;
@@ -1572,7 +1597,7 @@ const styles: Record<string, CSSProperties> = {
     display: "grid",
     gridTemplateColumns: "1.45fr 1fr 1fr",
     gap: 20,
-  },
+      },
   card: {
     background: "rgba(255,255,255,0.62)",
     border: "1px solid rgba(120, 113, 108, 0.15)",
@@ -1616,7 +1641,7 @@ const styles: Record<string, CSSProperties> = {
   },
   pillButtonActive: {
     background: "#171717",
-        color: "#fff",
+    color: "#fff",
     border: "1px solid #171717",
   },
   helperText: {
@@ -1716,7 +1741,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 12,
     marginTop: 20,
   },
-  statusSplitBox: {
+    statusSplitBox: {
     padding: 14,
     borderRadius: 18,
     background: "#f2f0ea",
@@ -1796,7 +1821,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-        gap: 18,
+    gap: 18,
     padding: "14px 0",
     borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
   },
@@ -1976,7 +2001,7 @@ const styles: Record<string, CSSProperties> = {
   locatorFilterRow: {
     display: "flex",
     gap: 10,
-        flexWrap: "wrap",
+    flexWrap: "wrap",
   },
   locatorChip: {
     border: "1px solid rgba(120, 113, 108, 0.18)",
