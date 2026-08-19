@@ -71,14 +71,12 @@ type ViewMode = "office" | "dcl" | "locator";
 type SortMode = "name" | "total";
 
 type LocatorFilter =
+  | "Accessories"
   | "New DC-1"
   | "New Kids DC-1"
   | "Open Box DC-1"
   | "Open Box Kids DC-1"
-  | "Warranty DC-1"
-  | "Accessories";
-
-type LocatorTag = LocatorFilter;
+  | "Warranty DC-1";
 
 type LocatorSectionCategory =
   | "Standard DC-1"
@@ -90,7 +88,7 @@ type LocatorSectionCategory =
 type LocatorRack = {
   rack: string;
   item: string;
-  filters: LocatorTag[];
+  filters: LocatorFilter[];
   searchTerms?: string[];
   quantity?: number | null;
 };
@@ -178,7 +176,11 @@ const LOCATOR_SECTIONS: LocatorSection[] = [
     title: "Shelf 4",
     category: "Warranty",
     racks: [
-              { rack: "Rack A", item: "N/A", filters: [] },
+      {
+        rack: "Rack A",
+        item: "N/A",
+        filters: [],
+      },
       {
         rack: "Rack B",
         item: "Build Quality",
@@ -194,7 +196,11 @@ const LOCATOR_SECTIONS: LocatorSection[] = [
         item: "Charging / Port Issue, WiFi Issues",
         filters: ["Warranty DC-1"],
       },
-      { rack: "Rack E", item: "N/A", filters: [] },
+      {
+        rack: "Rack E",
+        item: "N/A",
+        filters: [],
+      },
       {
         rack: "Rack F",
         item: "Dead Pixel, WiFi Issues",
@@ -356,9 +362,9 @@ const FALLBACK_DATA: DashboardPayload = {
       { label: "37-2 (ST64 Bright 60W)", value: 6 },
       { label: "41 - (G80 Red)", value: 8 },
     ],
-        warrantyIssues: [
+    warrantyIssues: [
       { label: "Anti-glare film peeling", total: 0, standard: 0, kids: 0 },
-            { label: "Blank screen, backlight on", total: 8, standard: 8, kids: 0 },
+      { label: "Blank screen, backlight on", total: 8, standard: 8, kids: 0 },
       { label: "Build Quality", total: 27, standard: 20, kids: 7 },
       { label: "Charging or Port Issue", total: 0, standard: 0, kids: 0 },
       { label: "Chipped screen", total: 0, standard: 0, kids: 0 },
@@ -539,7 +545,7 @@ export default function Page() {
         const matchesFilter =
           isSearching || !locatorCategory
             ? true
-                        : result.filters.includes(locatorCategory);
+            : result.filters.includes(locatorCategory);
 
         const searchText = [
           result.shelf,
@@ -575,7 +581,8 @@ export default function Page() {
 
   const showLocatorResults =
     locatorSearch.trim().length > 0 || locatorCategory !== null;
-    const officeAccessoryMax = Math.max(
+
+  const officeAccessoryMax = Math.max(
     1,
     ...office.accessories.map((item) => Math.abs(item.value))
   );
@@ -630,7 +637,7 @@ export default function Page() {
               }}
               onClick={() => setView("locator")}
             >
-              Locator
+              Office Locator
             </button>
           </div>
 
@@ -704,7 +711,8 @@ export default function Page() {
                 kids={office.status.warranty.kids}
               />
             </div>
-                        <div className="two-column-layout" style={styles.twoColumnLayout}>
+
+            <div className="two-column-layout" style={styles.twoColumnLayout}>
               <OpenBoxBreakdownCard office={office} />
 
               <TopWarrantyIssuesCard issues={topWarrantyIssues} />
@@ -840,6 +848,7 @@ export default function Page() {
     </main>
   );
 }
+
 function MobileFloatingSwitch({
   view,
   onChange,
@@ -859,7 +868,7 @@ function MobileFloatingSwitch({
       >
         Office
       </button>
-            <button
+      <button
         type="button"
         onClick={() => onChange("dcl")}
         style={{
@@ -877,7 +886,7 @@ function MobileFloatingSwitch({
           ...(view === "locator" ? styles.mobileFloatingButtonActive : {}),
         }}
       >
-        Locator
+        Office Locator
       </button>
     </div>
   );
@@ -911,7 +920,7 @@ function LocatorView({
   return (
     <section style={styles.section}>
       <div style={styles.locatorHeader}>
-        <h2 style={styles.sectionTitle}>Locator</h2>
+        <h2 style={styles.sectionTitle}>Office Locator</h2>
         <p style={styles.locatorSummary}>
           Find where units and accessories are stored in the office.
         </p>
@@ -1009,7 +1018,7 @@ function LocatorCard({ section }: { section: LocatorSection }) {
         ))}
       </div>
     </div>
-      );
+  );
 }
 
 function LocatorRackRow({ rack }: { rack: LocatorRack }) {
@@ -1145,6 +1154,7 @@ function StatusCard({
     </div>
   );
 }
+
 function OpenBoxBreakdownCard({ office }: { office: OfficeData }) {
   return (
     <div style={{ ...styles.card, ...styles.tableCard }}>
@@ -1157,7 +1167,7 @@ function OpenBoxBreakdownCard({ office }: { office: OfficeData }) {
           label="VIP"
           total={office.openBoxBreakdown.vip.total}
           standard={office.openBoxBreakdown.vip.standard}
-                    kids={office.openBoxBreakdown.vip.kids}
+          kids={office.openBoxBreakdown.vip.kids}
         />
         <BreakdownRow
           label="Sellable"
@@ -1303,7 +1313,7 @@ function AllWarrantyIssuesCard({
           >
             <div>
               <div style={styles.primaryTextNoMargin}>{issue.label}</div>
-                            <div style={styles.warrantySplitTiny}>
+              <div style={styles.warrantySplitTiny}>
                 S {issue.standard} / K {issue.kids}
               </div>
             </div>
@@ -1459,7 +1469,7 @@ function ResponsiveStyles() {
         .two-column-layout {
           gap: 12px !important;
           margin-top: 14px !important;
-                  }
+        }
 
         .open-box-info-popover {
           position: fixed !important;
@@ -1495,6 +1505,7 @@ function ResponsiveStyles() {
     `}</style>
   );
 }
+
 function BackgroundGlow() {
   return (
     <>
@@ -1597,7 +1608,7 @@ const styles: Record<string, CSSProperties> = {
     display: "grid",
     gridTemplateColumns: "1.45fr 1fr 1fr",
     gap: 20,
-      },
+  },
   card: {
     background: "rgba(255,255,255,0.62)",
     border: "1px solid rgba(120, 113, 108, 0.15)",
@@ -1741,7 +1752,7 @@ const styles: Record<string, CSSProperties> = {
     gap: 12,
     marginTop: 20,
   },
-    statusSplitBox: {
+  statusSplitBox: {
     padding: 14,
     borderRadius: 18,
     background: "#f2f0ea",
