@@ -70,10 +70,19 @@ type DashboardPayload = {
 type ViewMode = "office" | "dcl" | "locator";
 type SortMode = "name" | "total";
 
-type LocatorCategory =
-  | "All"
+type LocatorFilter =
+  | "New DC-1"
+  | "New Kids DC-1"
+  | "Open Box DC-1"
+  | "Open Box Kids DC-1"
+  | "Warranty DC-1"
+  | "Accessories";
+
+type LocatorTag = LocatorFilter;
+
+type LocatorSectionCategory =
   | "Standard DC-1"
-  | "DC-1 Kids"
+  | "Kids DC-1"
   | "Warranty"
   | "Accessories"
   | "Mixed";
@@ -81,23 +90,31 @@ type LocatorCategory =
 type LocatorRack = {
   rack: string;
   item: string;
+  filters: LocatorTag[];
+  searchTerms?: string[];
+  quantity?: number | null;
 };
 
 type LocatorSection = {
   title: string;
-  category: Exclude<LocatorCategory, "All">;
+  category: LocatorSectionCategory;
   racks: LocatorRack[];
+};
+
+type LocatorResult = LocatorRack & {
+  shelf: string;
+  category: LocatorSectionCategory;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
 
-const LOCATOR_FILTERS: LocatorCategory[] = [
-  "All",
-  "Standard DC-1",
-  "DC-1 Kids",
-  "Warranty",
+const LOCATOR_FILTERS: LocatorFilter[] = [
+  "New DC-1",
+  "New Kids DC-1",
+  "Open Box DC-1",
+  "Open Box Kids DC-1",
+  "Warranty DC-1",
   "Accessories",
-  "Mixed",
 ];
 
 const LOCATOR_SECTIONS: LocatorSection[] = [
@@ -105,79 +122,196 @@ const LOCATOR_SECTIONS: LocatorSection[] = [
     title: "Shelf 1",
     category: "Standard DC-1",
     racks: [
-      { rack: "Rack A, B, C", item: "New Units" },
-      { rack: "Rack D, E", item: "Open Box Units" },
+      {
+        rack: "Rack A, B, C",
+        item: "New DC-1",
+        filters: ["New DC-1"],
+      },
+      {
+        rack: "Rack D, E",
+        item: "Open Box DC-1",
+        filters: ["Open Box DC-1"],
+      },
     ],
   },
   {
     title: "Shelf 2",
     category: "Standard DC-1",
     racks: [
-      { rack: "Rack A", item: "Refurbished" },
-      { rack: "Rack B", item: "Open Box, Warranty Creak" },
-      { rack: "Rack C, D", item: "Warranty Creak" },
+      {
+        rack: "Rack A",
+        item: "Refurbished",
+        filters: [],
+        searchTerms: ["Refurbished DC-1"],
+      },
+      {
+        rack: "Rack B",
+        item: "Open Box / Warranty Grade Creaks",
+        filters: ["Open Box DC-1", "Warranty DC-1"],
+        searchTerms: ["Warranty Creak", "Warranty Grade Creaks"],
+      },
+      {
+        rack: "Rack C, D",
+        item: "Warranty Grade Creaks",
+        filters: ["Warranty DC-1"],
+        searchTerms: ["Warranty Creak"],
+      },
     ],
   },
   {
     title: "Shelf 3",
-    category: "DC-1 Kids",
+    category: "Kids DC-1",
     racks: [
-      { rack: "Rack A", item: "New Kids DC-1" },
-      { rack: "Rack B, C, D", item: "Open Box Kids DC-1" },
+      {
+        rack: "Rack A",
+        item: "New Kids DC-1",
+        filters: ["New Kids DC-1"],
+      },
+      {
+        rack: "Rack B, C, D",
+        item: "Open Box Kids DC-1",
+        filters: ["Open Box Kids DC-1"],
+      },
     ],
   },
   {
     title: "Shelf 4",
     category: "Warranty",
     racks: [
-      { rack: "Rack A", item: "N/A" },
-      { rack: "Rack B", item: "Build Quality" },
+            { rack: "Rack A", item: "N/A", filters: [] },
+      {
+        rack: "Rack B",
+        item: "Build Quality",
+        filters: ["Warranty DC-1"],
+      },
       {
         rack: "Rack C",
         item: "Liquid Crystal Leakage, WiFi Issues, Charging / Port Issue, Blank Screen Backlight On, Stylus, Dead Pixel",
+        filters: ["Warranty DC-1"],
       },
-      { rack: "Rack D", item: "Charging / Port Issue, WiFi Issues" },
-      { rack: "Rack E", item: "N/A" },
-      { rack: "Rack F", item: "Dead Pixel, WiFi Issues" },
+      {
+        rack: "Rack D",
+        item: "Charging / Port Issue, WiFi Issues",
+        filters: ["Warranty DC-1"],
+      },
+      { rack: "Rack E", item: "N/A", filters: [] },
+      {
+        rack: "Rack F",
+        item: "Dead Pixel, WiFi Issues",
+        filters: ["Warranty DC-1"],
+      },
     ],
   },
   {
     title: "Shelf 5",
     category: "Accessories",
     racks: [
-      { rack: "Rack C", item: "Kids Cases" },
-      { rack: "Rack D", item: "Comfy Sleeves" },
+      {
+        rack: "Rack C",
+        item: "Kids Case",
+        filters: ["Accessories"],
+        searchTerms: ["Kids Cases", "Daylight Kids Case"],
+      },
+      {
+        rack: "Rack D",
+        item: "Comfy Sleeve",
+        filters: ["Accessories"],
+        searchTerms: ["Comfy Sleeves", "Daylight Comfy Sleeve"],
+      },
     ],
   },
   {
     title: "Shelf 6",
-    category: "DC-1 Kids",
+    category: "Kids DC-1",
     racks: [
-      { rack: "Rack A", item: "VIP" },
-      { rack: "Rack B", item: "Sellable" },
-      { rack: "Rack C", item: "Warranty Grade Creak" },
-      { rack: "Rack D", item: "Warranty" },
+      {
+        rack: "Rack A",
+        item: "VIP Open Box Kids DC-1",
+        filters: ["Open Box Kids DC-1"],
+        searchTerms: ["VIP"],
+      },
+      {
+        rack: "Rack B",
+        item: "Sellable Open Box Kids DC-1",
+        filters: ["Open Box Kids DC-1"],
+        searchTerms: ["Sellable"],
+      },
+      {
+        rack: "Rack C",
+        item: "Warranty Grade Creaks",
+        filters: ["Open Box Kids DC-1", "Warranty DC-1"],
+      },
+      {
+        rack: "Rack D",
+        item: "Warranty Kids DC-1",
+        filters: ["Warranty DC-1"],
+      },
     ],
   },
   {
     title: "Shelf 7",
     category: "Accessories",
     racks: [
-      { rack: "Rack A", item: "Daylight Keyboards" },
-      { rack: "Rack B", item: "Lightbulbs" },
+      {
+        rack: "Rack A",
+        item: "Daylight Keyboard",
+        filters: ["Accessories"],
+        searchTerms: ["Daylight Keyboards", "Keyboard"],
+      },
+      {
+        rack: "Rack B",
+        item: "Light Bulbs",
+        filters: ["Accessories"],
+        searchTerms: ["Lightbulbs", "Light Bulb"],
+      },
     ],
   },
   {
     title: "Closet",
     category: "Mixed",
     racks: [
-      { rack: "Rack A", item: "Sling" },
-      { rack: "Rack B", item: "Stands" },
-      { rack: "Rack C", item: "Warranty Creak Grade" },
-      { rack: "Rack D", item: "Lightbulb Fixture" },
-      { rack: "Rack E", item: "Kids Cases" },
-      { rack: "Rack F", item: "Comfy Sleeve and Lamy" },
-      { rack: "Rack G", item: "Pre-MP Units" },
+      {
+        rack: "Rack A",
+        item: "Daylight Sling",
+        filters: ["Accessories"],
+        searchTerms: ["Sling"],
+      },
+      {
+        rack: "Rack B",
+        item: "Stands",
+        filters: ["Accessories"],
+        searchTerms: ["Daylight Stand"],
+      },
+      {
+        rack: "Rack C",
+        item: "Warranty Grade Creaks",
+        filters: ["Warranty DC-1"],
+        searchTerms: ["Warranty Creak Grade", "Warranty Creak"],
+      },
+      {
+        rack: "Rack D",
+        item: "Wood Lamp Fixture",
+        filters: ["Accessories"],
+        searchTerms: ["Lightbulb Fixture", "Wooden Light Fixture", "Wood Lamp Fixture"],
+      },
+      {
+        rack: "Rack E",
+        item: "Kids Case",
+        filters: ["Accessories"],
+        searchTerms: ["Kids Cases", "Daylight Kids Case"],
+      },
+      {
+        rack: "Rack F",
+        item: "Comfy Sleeve and Lamy Stylus",
+        filters: ["Accessories"],
+        searchTerms: ["Comfy Sleeve", "Lamy", "LAMY Pen", "Lamy Stylus"],
+      },
+      {
+        rack: "Rack G",
+        item: "Pre-MP Units",
+        filters: [],
+        searchTerms: ["Pre-MP", "Pre MP", "Pre-MP Rejects"],
+      },
     ],
   },
 ];
@@ -224,7 +358,7 @@ const FALLBACK_DATA: DashboardPayload = {
     ],
         warrantyIssues: [
       { label: "Anti-glare film peeling", total: 0, standard: 0, kids: 0 },
-      { label: "Blank screen, backlight on", total: 8, standard: 8, kids: 0 },
+            { label: "Blank screen, backlight on", total: 8, standard: 8, kids: 0 },
       { label: "Build Quality", total: 27, standard: 20, kids: 7 },
       { label: "Charging or Port Issue", total: 0, standard: 0, kids: 0 },
       { label: "Chipped screen", total: 0, standard: 0, kids: 0 },
@@ -304,7 +438,7 @@ export default function Page() {
   const [warrantyIssueSort, setWarrantyIssueSort] = useState<SortMode>("total");
   const [dclAccessorySort, setDclAccessorySort] = useState<SortMode>("total");
   const [locatorSearch, setLocatorSearch] = useState("");
-  const [locatorCategory, setLocatorCategory] = useState<LocatorCategory>("All");
+  const [locatorCategory, setLocatorCategory] = useState<LocatorFilter | null>(null);
 
   useEffect(() => {
     if (!API_URL) {
@@ -390,26 +524,38 @@ export default function Page() {
     return items.sort((a, b) => b.quantity - a.quantity);
   }, [dcl.accessories, dclAccessorySort]);
 
-  const filteredLocatorSections = useMemo(() => {
+  const locatorResults = useMemo(() => {
     const searchValue = locatorSearch.trim().toLowerCase();
 
-    return LOCATOR_SECTIONS.filter((section) => {
-      const matchesCategory =
-        locatorCategory === "All" || section.category === locatorCategory;
-
-      const searchText = [
-        section.title,
-        section.category,
-        ...section.racks.flatMap((rack) => [rack.rack, rack.item]),
+    return LOCATOR_SECTIONS.flatMap((section) =>
+      section.racks.map((rack) => ({
+        shelf: section.title,
+        category: section.category,
+        ...rack,
+      }))
+    ).filter((result) => {
+      const matchesFilter = locatorCategory
+        ? result.filters.includes(locatorCategory)
+        : true;
+              const searchText = [
+        result.shelf,
+        result.category,
+        result.rack,
+        result.item,
+        ...result.filters,
+        ...(result.searchTerms || []),
       ]
         .join(" ")
         .toLowerCase();
 
       const matchesSearch = !searchValue || searchText.includes(searchValue);
 
-      return matchesCategory && matchesSearch;
+      return matchesFilter && matchesSearch;
     });
   }, [locatorCategory, locatorSearch]);
+
+  const showLocatorResults =
+    locatorSearch.trim().length > 0 || locatorCategory !== null;
     const officeAccessoryMax = Math.max(
     1,
     ...office.accessories.map((item) => Math.abs(item.value))
@@ -571,7 +717,7 @@ export default function Page() {
             <OverviewMetricCard
               label="Standard DC-1s"
               value={office.overview.standard}
-            />
+                          />
             <OverviewMetricCard
               label="Kid DC-1s"
               value={office.overview.kids}
@@ -664,7 +810,9 @@ export default function Page() {
         <LocatorView
           search={locatorSearch}
           category={locatorCategory}
-          sections={filteredLocatorSections}
+          sections={LOCATOR_SECTIONS}
+          results={locatorResults}
+          showResults={showLocatorResults}
           onSearchChange={setLocatorSearch}
           onCategoryChange={setLocatorCategory}
         />
@@ -721,15 +869,27 @@ function LocatorView({
   search,
   category,
   sections,
+  results,
+  showResults,
   onSearchChange,
   onCategoryChange,
 }: {
   search: string;
-  category: LocatorCategory;
+  category: LocatorFilter | null;
   sections: LocatorSection[];
+  results: LocatorResult[];
+  showResults: boolean;
   onSearchChange: (value: string) => void;
-  onCategoryChange: (value: LocatorCategory) => void;
+  onCategoryChange: (value: LocatorFilter | null) => void;
 }) {
+  const searchValue = search.trim();
+  const resultTitle = category || (searchValue ? `Search results for "${searchValue}"` : "Shelf Map");
+  const resultCountLabel = `${results.length} ${results.length === 1 ? "location" : "locations"} found`;
+  const totalQuantity = results.reduce((total, result) => {
+    return typeof result.quantity === "number" ? total + result.quantity : total;
+  }, 0);
+  const hasQuantity = results.some((result) => typeof result.quantity === "number");
+
   return (
     <section style={styles.section}>
       <div style={styles.locatorHeader}>
@@ -737,13 +897,13 @@ function LocatorView({
         <p style={styles.locatorSummary}>
           Find where units and accessories are stored in the office.
         </p>
-      </div>
+              </div>
 
       <div style={styles.locatorControls}>
         <input
           value={search}
           onChange={(event) => onSearchChange(event.target.value)}
-          placeholder="Search shelf, rack, or item..."
+          placeholder="Search shelf, rack, item, or category..."
           style={styles.locatorSearchInput}
         />
 
@@ -752,7 +912,7 @@ function LocatorView({
             <button
               key={filter}
               type="button"
-              onClick={() => onCategoryChange(filter)}
+              onClick={() => onCategoryChange(category === filter ? null : filter)}
               style={{
                 ...styles.locatorChip,
                 ...(category === filter ? styles.locatorChipActive : {}),
@@ -764,7 +924,34 @@ function LocatorView({
         </div>
       </div>
 
-      {sections.length > 0 ? (
+      {showResults ? (
+        <>
+          <div style={{ ...styles.card, ...styles.locatorResultsHeaderCard }}>
+            <div>
+              <h3 style={styles.locatorResultsTitle}>{resultTitle}</h3>
+              <p style={styles.locatorResultsSub}>{resultCountLabel}</p>
+            </div>
+            <div style={styles.locatorTotalBadge}>
+              Total: {hasQuantity ? formatNumber(totalQuantity) : "--"}
+            </div>
+          </div>
+
+          {results.length > 0 ? (
+            <div style={styles.locatorResultList}>
+              {results.map((result) => (
+                <LocatorResultCard
+                  key={`${result.shelf}-${result.rack}-${result.item}`}
+                  result={result}
+                />
+              ))}
+            </div>
+          ) : (
+            <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>
+              No matching locations found.
+            </div>
+          )}
+        </>
+      ) : sections.length > 0 ? (
         <div className="locator-grid" style={styles.locatorGrid}>
           {sections.map((section) => (
             <LocatorCard key={section.title} section={section} />
@@ -772,7 +959,7 @@ function LocatorView({
         </div>
       ) : (
         <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>
-          No matching storage areas found.
+          No storage areas found.
         </div>
       )}
     </section>
@@ -806,6 +993,22 @@ function LocatorRackRow({ rack }: { rack: LocatorRack }) {
     <div className="locator-rack-row" style={styles.locatorRackRow}>
       <div style={styles.locatorRackName}>{rack.rack}</div>
       <div style={styles.locatorRackItem}>{rack.item}</div>
+    </div>
+  );
+}
+
+function LocatorResultCard({ result }: { result: LocatorResult }) {
+  return (
+    <div className="locator-result-card" style={{ ...styles.card, ...styles.locatorResultCard }}>
+      <div style={styles.locatorResultTop}>
+        <div style={styles.locatorResultItem}>{result.item}</div>
+        <div style={styles.locatorQuantityBadge}>
+          Qty {formatLocatorQuantity(result.quantity)}
+        </div>
+      </div>
+      <div style={styles.locatorResultLocation}>
+        {result.shelf} · {result.rack}
+      </div>
     </div>
   );
 }
@@ -874,7 +1077,7 @@ function OverviewMetricCard({
       <div style={styles.metricLabel}>{label}</div>
       <div style={styles.metricValue}>{formatNumber(value)}</div>
     </div>
-  );
+      );
 }
 
 function StatusCard({
@@ -1054,7 +1257,7 @@ function AllWarrantyIssuesCard({
             }}
           >
             Issue
-          </button>
+                      </button>
           <div />
           <button
             type="button"
@@ -1233,8 +1436,7 @@ function ResponsiveStyles() {
           gap: 12px !important;
           margin-top: 14px !important;
         }
-
-        .open-box-info-popover {
+                  .open-box-info-popover {
           position: fixed !important;
           top: 88px !important;
           left: 16px !important;
@@ -1259,6 +1461,10 @@ function ResponsiveStyles() {
         .locator-rack-row {
           grid-template-columns: 1fr !important;
           gap: 6px !important;
+        }
+
+        .locator-result-card {
+          padding: 16px !important;
         }
       }
     `}</style>
@@ -1292,6 +1498,14 @@ function FloatingMark() {
 
 function formatNumber(value: number) {
   return new Intl.NumberFormat("en-US").format(value);
+}
+
+function formatLocatorQuantity(value?: number | null) {
+  if (typeof value !== "number") {
+    return "--";
+  }
+
+  return formatNumber(value);
 }
 
 function formatUpdatedAt(value: string) {
@@ -1402,7 +1616,7 @@ const styles: Record<string, CSSProperties> = {
   },
   pillButtonActive: {
     background: "#171717",
-    color: "#fff",
+        color: "#fff",
     border: "1px solid #171717",
   },
   helperText: {
@@ -1582,7 +1796,7 @@ const styles: Record<string, CSSProperties> = {
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 18,
+        gap: 18,
     padding: "14px 0",
     borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
   },
@@ -1762,7 +1976,7 @@ const styles: Record<string, CSSProperties> = {
   locatorFilterRow: {
     display: "flex",
     gap: 10,
-    flexWrap: "wrap",
+        flexWrap: "wrap",
   },
   locatorChip: {
     border: "1px solid rgba(120, 113, 108, 0.18)",
@@ -1831,6 +2045,67 @@ const styles: Record<string, CSSProperties> = {
     fontSize: 14,
     color: "#57534e",
     lineHeight: 1.45,
+  },
+  locatorResultsHeaderCard: {
+    marginBottom: 14,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  locatorResultsTitle: {
+    margin: 0,
+    fontSize: 24,
+    fontWeight: 760,
+    letterSpacing: "-0.02em",
+  },
+  locatorResultsSub: {
+    margin: "8px 0 0",
+    fontSize: 14,
+    color: "#78716c",
+  },
+  locatorTotalBadge: {
+    borderRadius: 999,
+    background: "#171717",
+    color: "#fff",
+    padding: "10px 14px",
+    fontSize: 14,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  locatorResultList: {
+    display: "grid",
+    gap: 12,
+  },
+  locatorResultCard: {
+    padding: 18,
+  },
+  locatorResultTop: {
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 16,
+  },
+  locatorResultItem: {
+    fontSize: 18,
+    fontWeight: 760,
+    color: "#292524",
+    lineHeight: 1.25,
+  },
+  locatorQuantityBadge: {
+    borderRadius: 999,
+    background: "#f2ecd9",
+    color: "#9a3412",
+    padding: "7px 11px",
+    fontSize: 13,
+    fontWeight: 800,
+    whiteSpace: "nowrap",
+  },
+  locatorResultLocation: {
+    marginTop: 8,
+    fontSize: 15,
+    fontWeight: 700,
+    color: "#57534e",
   },
   emptyLocatorCard: {
     marginTop: 18,
