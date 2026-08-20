@@ -70,6 +70,11 @@ type DashboardPayload = {
 type ViewMode = "office" | "dcl" | "locator";
 type SortMode = "name" | "total";
 
+type AssistantMessage = {
+  role: "user" | "assistant";
+  content: string;
+};
+
 type LocatorFilter =
   | "Accessories"
   | "New DC-1"
@@ -446,6 +451,18 @@ export default function Page() {
   const [locatorSearch, setLocatorSearch] = useState("");
   const [locatorCategory, setLocatorCategory] = useState<LocatorFilter | null>(null);
 
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const [assistantInput, setAssistantInput] = useState("");
+  const [assistantLoading, setAssistantLoading] = useState(false);
+  const [assistantError, setAssistantError] = useState("");
+  const [assistantMessages, setAssistantMessages] = useState<AssistantMessage[]>([
+    {
+      role: "assistant",
+      content:
+        "Hey, I can answer questions about Office inventory, DCL inventory, warranty issues, and accessories.",
+    },
+  ]);
+
   useEffect(() => {
     if (!API_URL) {
       setError("Live data issue: Missing NEXT_PUBLIC_IMS_API_URL environment variable.");
@@ -488,6 +505,60 @@ export default function Page() {
       clearInterval(interval);
     };
   }, []);
+
+  async function sendAssistantMessage() {
+    const trimmed = assistantInput.trim();
+
+    if (!trimmed || assistantLoading) {
+      return;
+    }
+
+    const nextMessages: AssistantMessage[] = [
+      ...assistantMessages,
+      { role: "user", content: trimmed },
+    ];
+
+    setAssistantMessages(nextMessages);
+    setAssistantInput("");
+    setAssistantLoading(true);
+    setAssistantError("");
+
+    try {
+      const conversationText = nextMessages
+        .map((message) => `${message.role}: ${message.content}`)
+        .join("\n");
+
+      const response = await fetch("/api/ims-assistant", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: conversationText,
+        }),
+      });
+
+      const json = await response.json();
+
+      if (!response.ok) {
+        throw new Error(json.error || "IMS Assistant failed.");
+      }
+
+      setAssistantMessages((current) => [
+        ...current,
+        {
+          role: "assistant",
+          content: json.answer || "I could not find an answer in IMS.",
+        },
+      ]);
+    } catch (error) {
+      setAssistantError(
+        error instanceof Error ? error.message : "IMS Assistant failed."
+      );
+    } finally {
+      setAssistantLoading(false);
+    }
+  }
 
   const office = data.office || FALLBACK_DATA.office!;
   const dcl = data.dcl || FALLBACK_DATA.dcl!;
@@ -844,7 +915,17 @@ export default function Page() {
         />
       )}
 
-      <FloatingMark />
+      <FloatingAssistant
+        open={assistantOpen}
+        messages={assistantMessages}
+        input={assistantInput}
+        loading={assistantLoading}
+        error={assistantError}
+        onToggle={() => setAssistantOpen((value) => !value)}
+        onClose={() => setAssistantOpen(false)}
+        onInputChange={setAssistantInput}
+        onSend={sendAssistantMessage}
+      />
     </main>
   );
 }
@@ -889,6 +970,129 @@ function MobileFloatingSwitch({
         Office Locator
       </button>
     </div>
+  );
+}
+
+function FloatingAssistant({
+  open,
+  messages,
+  input,
+  loading,
+  error,
+  onToggle,
+  onClose,
+  onInputChange,
+  onSend,
+}: {
+  open: boolean;
+  messages: AssistantMessage[];
+  input: string;
+  loading: boolean;
+  error: string;
+  onToggle: () => void;
+  onClose: () => void;
+  onInputChange: (value: string) => void;
+  onSend: () => void;
+}) {
+  return (
+    <>
+      {open && (
+        <div className="ims-assistant-panel" style={styles.assistantPanel}>
+          <div style={styles.assistantHeader}>
+            <div>
+              <div style={styles.assistantTitle}>IMS Assistant</div>
+              <div style={styles.assistantSubtitle}>Ask about Office or DCL inventory.</div>
+            </div>
+
+            <button
+              type="button"
+              onClick={onClose}
+              style={styles.assistantCloseButton}
+              aria-label="Close IMS Assistant"
+            >
+              ×
+            </button>
+          </div>
+
+          <div style={styles.assistantMessages}>
+            {messages.map((message, index) => (
+              <div
+                key={`${message.role}-${index}`}
+                style={{
+                  ...styles.assistantMessage,
+                  ...(message.role === "user"
+                    ? styles.assistantMessageUser
+                    : styles.assistantMessageBot),
+                }}
+              >
+                {message.content}
+              </div>
+            ))}
+
+            {loading && (
+              <div style={{ ...styles.assistantMessage, ...styles.assistantMessageBot }}>
+                Thinking…
+              </div>
+            )}
+
+            {error && <div style={styles.assistantError}>{error}</div>}
+          </div>
+
+          <form
+            style={styles.assistantForm}
+            onSubmit={(event) => {
+              event.preventDefault();
+              onSend();
+            }}
+          >
+            <textarea
+              value={input}
+              onChange={(event) => onInputChange(event.target.value)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" && !event.shiftKey) {
+                  event.preventDefault();
+                  onSend();
+                }
+              }}
+              placeholder="Ask about inventory..."
+              style={styles.assistantInput}
+              rows={2}
+              disabled={loading}
+            />
+
+            <button
+              type="submit"
+              style={{
+                ...styles.assistantSendButton,
+                ...(loading || !input.trim() ? styles.assistantSendButtonDisabled : {}),
+              }}
+              disabled={loading || !input.trim()}
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={onToggle}
+        style={{ ...styles.floatingMark, ...styles.floatingMarkButton }}
+        aria-label={open ? "Close IMS Assistant" : "Open IMS Assistant"}
+        title="IMS Assistant"
+      >
+        <div style={styles.floatingLogoInner}>
+          <Image
+            src="/daylight-logo.png"
+            alt="Daylight logo"
+            fill
+            style={{ objectFit: "contain" }}
+            priority
+            sizes="40px"
+          />
+        </div>
+      </button>
+    </>
   );
 }
 
@@ -1501,6 +1705,14 @@ function ResponsiveStyles() {
         .locator-result-card {
           padding: 16px !important;
         }
+
+        .ims-assistant-panel {
+          right: 14px !important;
+          left: 14px !important;
+          bottom: 92px !important;
+          width: auto !important;
+          max-height: 68vh !important;
+        }
       }
     `}</style>
   );
@@ -1512,23 +1724,6 @@ function BackgroundGlow() {
       <div style={styles.glowOne} />
       <div style={styles.glowTwo} />
     </>
-  );
-}
-
-function FloatingMark() {
-  return (
-    <div style={styles.floatingMark}>
-      <div style={styles.floatingLogoInner}>
-        <Image
-          src="/daylight-logo.png"
-          alt="Daylight logo"
-          fill
-          style={{ objectFit: "contain" }}
-          priority
-          sizes="40px"
-        />
-      </div>
-    </div>
   );
 }
 
@@ -2148,6 +2343,126 @@ const styles: Record<string, CSSProperties> = {
     color: "#78716c",
     fontSize: 15,
   },
+  assistantPanel: {
+    position: "fixed",
+    right: 22,
+    bottom: 98,
+    width: 380,
+    maxHeight: "72vh",
+    background: "rgba(255,255,255,0.94)",
+    border: "1px solid rgba(120, 113, 108, 0.16)",
+    borderRadius: 24,
+    boxShadow: "0 18px 48px rgba(28,25,23,0.18)",
+    backdropFilter: "blur(14px)",
+    zIndex: 90,
+    overflow: "hidden",
+    display: "flex",
+    flexDirection: "column",
+  },
+  assistantHeader: {
+    padding: "18px 18px 14px",
+    borderBottom: "1px solid rgba(120, 113, 108, 0.12)",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: 14,
+  },
+  assistantTitle: {
+    fontSize: 18,
+    fontWeight: 780,
+    color: "#1c1917",
+    letterSpacing: "-0.02em",
+  },
+  assistantSubtitle: {
+    marginTop: 5,
+    fontSize: 13,
+    color: "#78716c",
+    lineHeight: 1.35,
+  },
+  assistantCloseButton: {
+    width: 30,
+    height: 30,
+    borderRadius: "50%",
+    border: "1px solid rgba(120, 113, 108, 0.16)",
+    background: "#fbfaf7",
+    color: "#57534e",
+    fontSize: 20,
+    lineHeight: 1,
+    cursor: "pointer",
+  },
+  assistantMessages: {
+    padding: 16,
+    display: "flex",
+    flexDirection: "column",
+    gap: 10,
+    overflowY: "auto",
+    minHeight: 210,
+    maxHeight: 360,
+  },
+  assistantMessage: {
+    borderRadius: 18,
+    padding: "11px 13px",
+    fontSize: 14,
+    lineHeight: 1.45,
+    whiteSpace: "pre-wrap",
+  },
+  assistantMessageBot: {
+    alignSelf: "flex-start",
+    background: "#f2f0ea",
+    color: "#292524",
+    maxWidth: "88%",
+  },
+  assistantMessageUser: {
+    alignSelf: "flex-end",
+    background: "#171717",
+    color: "#fff",
+    maxWidth: "88%",
+  },
+  assistantError: {
+    borderRadius: 14,
+    padding: "10px 12px",
+    background: "#fee2e2",
+    color: "#991b1b",
+    fontSize: 13,
+    lineHeight: 1.35,
+  },
+  assistantForm: {
+    padding: 14,
+    borderTop: "1px solid rgba(120, 113, 108, 0.12)",
+    display: "grid",
+    gridTemplateColumns: "1fr auto",
+    gap: 10,
+    alignItems: "end",
+  },
+  assistantInput: {
+    width: "100%",
+    minHeight: 44,
+    maxHeight: 110,
+    resize: "vertical",
+    boxSizing: "border-box",
+    border: "1px solid rgba(120, 113, 108, 0.18)",
+    borderRadius: 16,
+    padding: "11px 12px",
+    fontSize: 14,
+    color: "#292524",
+    background: "#fbfaf7",
+    outline: "none",
+    fontFamily: "inherit",
+  },
+  assistantSendButton: {
+    border: "none",
+    borderRadius: 16,
+    background: "#171717",
+    color: "#fff",
+    padding: "13px 15px",
+    fontSize: 14,
+    fontWeight: 800,
+    cursor: "pointer",
+  },
+  assistantSendButtonDisabled: {
+    opacity: 0.45,
+    cursor: "not-allowed",
+  },
   glowOne: {
     position: "fixed",
     top: -120,
@@ -2185,6 +2500,11 @@ const styles: Record<string, CSSProperties> = {
     alignItems: "center",
     justifyContent: "center",
     border: "1px solid rgba(120, 113, 108, 0.12)",
+    zIndex: 91,
+  },
+  floatingMarkButton: {
+    padding: 0,
+    cursor: "pointer",
   },
   floatingLogoInner: {
     position: "relative",
