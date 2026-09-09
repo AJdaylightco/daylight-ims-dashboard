@@ -84,8 +84,7 @@ type LocatorFilter =
   | "Sellable Open Box"
   | "Warranty Grade Open Box"
   | "Warranty"
-  | "Pre-MP"
-  | "Units";
+  | "Pre-MP";
 
 type LocatorLocation = {
   shelf: string;
@@ -138,7 +137,6 @@ const LOCATOR_FILTERS: LocatorFilter[] = [
   "Warranty Grade Open Box",
   "Warranty",
   "Pre-MP",
-  "Units",
 ];
 
 const EMPTY_LOCATOR_DATA: LocatorData = {
