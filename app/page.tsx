@@ -64,6 +64,7 @@ type DashboardPayload = {
   updatedAt?: string;
   office?: OfficeData;
   dcl?: DclData;
+  locator?: LocatorData;
   error?: string;
 };
 
@@ -77,255 +78,79 @@ type AssistantMessage = {
 
 type LocatorFilter =
   | "Accessories"
-  | "New DC-1"
-  | "New Kids DC-1"
-  | "Open Box DC-1"
-  | "Open Box Kids DC-1"
-  | "Warranty DC-1";
-
-type LocatorSectionCategory =
-  | "Standard DC-1"
-  | "Kids DC-1"
+  | "New Units"
+  | "Open Box"
+  | "VIP Open Box"
+  | "Sellable Open Box"
+  | "Warranty Grade Open Box"
   | "Warranty"
-  | "Accessories"
-  | "Mixed";
+  | "Pre-MP"
+  | "Units";
 
-type LocatorRack = {
-  rack: string;
-  item: string;
-  filters: LocatorFilter[];
-  searchTerms?: string[];
-  quantity?: number | null;
-};
-
-type LocatorSection = {
-  title: string;
-  category: LocatorSectionCategory;
-  racks: LocatorRack[];
-};
-
-type LocatorResult = LocatorRack & {
+type LocatorLocation = {
   shelf: string;
-  category: LocatorSectionCategory;
+  rack: string;
+  locationName: string;
+  quantity: number;
+  serialNumbers?: string[];
+  status?: string;
+  condition?: string;
+  creakGrade?: string;
+  warrantyIssue?: string;
+  notes?: string;
+  timestamp?: string;
+  rowNumber?: number | string;
+};
+
+type LocatorItem = {
+  itemName: string;
+  category: string;
+  totalQuantity: number;
+  locations: LocatorLocation[];
+};
+
+type LocatorData = {
+  ok: boolean;
+  locations: {
+    shelf: string;
+    rack: string;
+    locationName: string;
+    totalQuantity: number;
+    items: unknown[];
+  }[];
+  items: LocatorItem[];
+  summary: {
+    locationCount: number;
+    itemCount: number;
+    totalQuantity: number;
+  };
+  error?: string;
 };
 
 const API_URL = process.env.NEXT_PUBLIC_IMS_API_URL ?? "";
 
 const LOCATOR_FILTERS: LocatorFilter[] = [
   "Accessories",
-  "New DC-1",
-  "New Kids DC-1",
-  "Open Box DC-1",
-  "Open Box Kids DC-1",
-  "Warranty DC-1",
+  "New Units",
+  "Open Box",
+  "VIP Open Box",
+  "Sellable Open Box",
+  "Warranty Grade Open Box",
+  "Warranty",
+  "Pre-MP",
+  "Units",
 ];
 
-const LOCATOR_SECTIONS: LocatorSection[] = [
-  {
-    title: "Shelf 1",
-    category: "Standard DC-1",
-    racks: [
-      {
-        rack: "Rack A, B, C",
-        item: "New DC-1",
-        filters: ["New DC-1"],
-      },
-      {
-        rack: "Rack D, E",
-        item: "Open Box DC-1",
-        filters: ["Open Box DC-1"],
-      },
-    ],
+const EMPTY_LOCATOR_DATA: LocatorData = {
+  ok: true,
+  locations: [],
+  items: [],
+  summary: {
+    locationCount: 0,
+    itemCount: 0,
+    totalQuantity: 0,
   },
-  {
-    title: "Shelf 2",
-    category: "Standard DC-1",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "Refurbished",
-        filters: [],
-        searchTerms: ["Refurbished DC-1"],
-      },
-      {
-        rack: "Rack B",
-        item: "Open Box / Warranty Grade Creaks",
-        filters: ["Open Box DC-1", "Warranty DC-1"],
-        searchTerms: ["Warranty Creak", "Warranty Grade Creaks"],
-      },
-      {
-        rack: "Rack C, D",
-        item: "Warranty Grade Creaks",
-        filters: ["Warranty DC-1"],
-        searchTerms: ["Warranty Creak"],
-      },
-    ],
-  },
-  {
-    title: "Shelf 3",
-    category: "Kids DC-1",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "New Kids DC-1",
-        filters: ["New Kids DC-1"],
-      },
-      {
-        rack: "Rack B, C, D",
-        item: "Open Box Kids DC-1",
-        filters: ["Open Box Kids DC-1"],
-      },
-    ],
-  },
-  {
-    title: "Shelf 4",
-    category: "Warranty",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "N/A",
-        filters: [],
-      },
-      {
-        rack: "Rack B",
-        item: "Build Quality",
-        filters: ["Warranty DC-1"],
-      },
-      {
-        rack: "Rack C",
-        item: "Liquid Crystal Leakage, WiFi Issues, Charging / Port Issue, Blank Screen Backlight On, Stylus, Dead Pixel",
-        filters: ["Warranty DC-1"],
-      },
-      {
-        rack: "Rack D",
-        item: "Charging / Port Issue, WiFi Issues",
-        filters: ["Warranty DC-1"],
-      },
-      {
-        rack: "Rack E",
-        item: "N/A",
-        filters: [],
-      },
-      {
-        rack: "Rack F",
-        item: "Dead Pixel, WiFi Issues",
-        filters: ["Warranty DC-1"],
-      },
-    ],
-  },
-  {
-    title: "Shelf 5",
-    category: "Accessories",
-    racks: [
-      {
-        rack: "Rack C",
-        item: "Kids Case",
-        filters: ["Accessories"],
-        searchTerms: ["Kids Cases", "Daylight Kids Case"],
-      },
-      {
-        rack: "Rack D",
-        item: "Comfy Sleeve",
-        filters: ["Accessories"],
-        searchTerms: ["Comfy Sleeves", "Daylight Comfy Sleeve"],
-      },
-    ],
-  },
-  {
-    title: "Shelf 6",
-    category: "Kids DC-1",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "VIP Open Box Kids DC-1",
-        filters: ["Open Box Kids DC-1"],
-        searchTerms: ["VIP"],
-      },
-      {
-        rack: "Rack B",
-        item: "Sellable Open Box Kids DC-1",
-        filters: ["Open Box Kids DC-1"],
-        searchTerms: ["Sellable"],
-      },
-      {
-        rack: "Rack C",
-        item: "Warranty Grade Creaks",
-        filters: ["Open Box Kids DC-1", "Warranty DC-1"],
-      },
-      {
-        rack: "Rack D",
-        item: "Warranty Kids DC-1",
-        filters: ["Warranty DC-1"],
-      },
-    ],
-  },
-  {
-    title: "Shelf 7",
-    category: "Accessories",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "Daylight Keyboard",
-        filters: ["Accessories"],
-        searchTerms: ["Daylight Keyboards", "Keyboard"],
-      },
-      {
-        rack: "Rack B",
-        item: "Light Bulbs",
-        filters: ["Accessories"],
-        searchTerms: ["Lightbulbs", "Light Bulb"],
-      },
-    ],
-  },
-  {
-    title: "Closet",
-    category: "Mixed",
-    racks: [
-      {
-        rack: "Rack A",
-        item: "Daylight Sling",
-        filters: ["Accessories"],
-        searchTerms: ["Sling"],
-      },
-      {
-        rack: "Rack B",
-        item: "Stands",
-        filters: ["Accessories"],
-        searchTerms: ["Daylight Stand"],
-      },
-      {
-        rack: "Rack C",
-        item: "Warranty Grade Creaks",
-        filters: ["Warranty DC-1"],
-        searchTerms: ["Warranty Creak Grade", "Warranty Creak"],
-      },
-      {
-        rack: "Rack D",
-        item: "Wood Lamp Fixture",
-        filters: ["Accessories"],
-        searchTerms: ["Lightbulb Fixture", "Wooden Light Fixture", "Wood Lamp Fixture"],
-      },
-      {
-        rack: "Rack E",
-        item: "Kids Case",
-        filters: ["Accessories"],
-        searchTerms: ["Kids Cases", "Daylight Kids Case"],
-      },
-      {
-        rack: "Rack F",
-        item: "Comfy Sleeve and Lamy Stylus",
-        filters: ["Accessories"],
-        searchTerms: ["Comfy Sleeve", "Lamy", "LAMY Pen", "Lamy Stylus"],
-      },
-      {
-        rack: "Rack G",
-        item: "Pre-MP Units",
-        filters: [],
-        searchTerms: ["Pre-MP", "Pre MP", "Pre-MP Rejects"],
-      },
-    ],
-  },
-];
+};
 
 const FALLBACK_DATA: DashboardPayload = {
   ok: true,
@@ -562,6 +387,7 @@ export default function Page() {
 
   const office = data.office || FALLBACK_DATA.office!;
   const dcl = data.dcl || FALLBACK_DATA.dcl!;
+  const locator = data.locator || EMPTY_LOCATOR_DATA;
   const syncedLabel = formatUpdatedAt(data.updatedAt || FALLBACK_DATA.updatedAt!);
 
   const topWarrantyIssues = useMemo(() => {
@@ -603,55 +429,46 @@ export default function Page() {
 
   const locatorResults = useMemo(() => {
     const searchValue = locatorSearch.trim().toLowerCase();
-    const isSearching = searchValue.length > 0;
 
-    return LOCATOR_SECTIONS.flatMap((section) =>
-      section.racks.map((rack) => ({
-        shelf: section.title,
-        category: section.category,
-        ...rack,
-      }))
-    )
-      .filter((result) => {
-        const matchesFilter =
-          isSearching || !locatorCategory
-            ? true
-            : result.filters.includes(locatorCategory);
+    return [...locator.items]
+      .filter((item) => {
+        const itemName = item.itemName.toLowerCase();
+        const itemCategory = item.category.toLowerCase();
+        const filterCategory = locatorCategory ? locatorCategory.toLowerCase() : "";
+
+        const matchesCategory = locatorCategory
+          ? itemCategory === filterCategory || itemName.includes(filterCategory)
+          : true;
 
         const searchText = [
-          result.shelf,
-          result.category,
-          result.rack,
-          result.item,
-          ...result.filters,
-          ...(result.searchTerms || []),
+          item.itemName,
+          item.category,
+          String(item.totalQuantity),
+          ...item.locations.flatMap((location) => [
+            location.shelf,
+            location.rack,
+            location.locationName,
+            String(location.quantity),
+            location.status || "",
+            location.condition || "",
+            location.creakGrade || "",
+            location.warrantyIssue || "",
+            location.notes || "",
+            ...(location.serialNumbers || []),
+          ]),
         ]
           .join(" ")
           .toLowerCase();
 
         const matchesSearch = !searchValue || searchText.includes(searchValue);
-
-        return matchesFilter && matchesSearch;
+        return matchesCategory && matchesSearch;
       })
       .sort((a, b) => {
-        const itemCompare = a.item.localeCompare(b.item);
-
-        if (itemCompare !== 0) {
-          return itemCompare;
-        }
-
-        const shelfCompare = a.shelf.localeCompare(b.shelf);
-
-        if (shelfCompare !== 0) {
-          return shelfCompare;
-        }
-
-        return a.rack.localeCompare(b.rack);
+        const quantityCompare = b.totalQuantity - a.totalQuantity;
+        if (quantityCompare !== 0) return quantityCompare;
+        return a.itemName.localeCompare(b.itemName);
       });
-  }, [locatorCategory, locatorSearch]);
-
-  const showLocatorResults =
-    locatorSearch.trim().length > 0 || locatorCategory !== null;
+  }, [locator.items, locatorCategory, locatorSearch]);
 
   const officeAccessoryMax = Math.max(
     1,
@@ -907,9 +724,8 @@ export default function Page() {
         <LocatorView
           search={locatorSearch}
           category={locatorCategory}
-          sections={LOCATOR_SECTIONS}
+          locator={locator}
           results={locatorResults}
-          showResults={showLocatorResults}
           onSearchChange={setLocatorSearch}
           onCategoryChange={setLocatorCategory}
         />
@@ -1099,38 +915,39 @@ function FloatingAssistant({
 function LocatorView({
   search,
   category,
-  sections,
+  locator,
   results,
-  showResults,
   onSearchChange,
   onCategoryChange,
 }: {
   search: string;
   category: LocatorFilter | null;
-  sections: LocatorSection[];
-  results: LocatorResult[];
-  showResults: boolean;
+  locator: LocatorData;
+  results: LocatorItem[];
   onSearchChange: (value: string) => void;
   onCategoryChange: (value: LocatorFilter | null) => void;
 }) {
   const searchValue = search.trim();
-  const resultTitle = category || (searchValue ? `Search results for "${searchValue}"` : "Shelf Map");
-  const resultCountLabel = `${results.length} ${results.length === 1 ? "location" : "locations"} found`;
-  const totalQuantity = results.reduce((total, result) => {
-    return typeof result.quantity === "number" ? total + result.quantity : total;
-  }, 0);
-  const hasQuantity = results.some((result) => typeof result.quantity === "number");
+  const resultTitle = category || (searchValue ? `Search results for "${searchValue}"` : "Live Office Locator");
+  const totalQuantity = results.reduce((total, item) => total + item.totalQuantity, 0);
+  const resultCountLabel = `${results.length} ${results.length === 1 ? "item" : "items"} found`;
 
   return (
     <section style={styles.section}>
       <div style={styles.locatorHeader}>
         <h2 style={styles.sectionTitle}>Office Locator</h2>
         <p style={styles.locatorSummary}>
-          Find where units and accessories are stored in the office.
+          Live shelf and rack locations from the Raw Log. Grouped by item so duplicate cards are cleaned up.
         </p>
       </div>
 
-      <div style={styles.locatorControls}>
+      <div className="card-grid-3" style={styles.cardGrid3}>
+        <OverviewMetricCard label="Locator Items" value={locator.summary.itemCount} />
+        <OverviewMetricCard label="Locator Locations" value={locator.summary.locationCount} />
+        <OverviewMetricCard label="Total Located Qty" value={locator.summary.totalQuantity} />
+      </div>
+
+      <div style={{ ...styles.locatorControls, marginTop: 20 }}>
         <input
           value={search}
           onChange={(event) => {
@@ -1140,7 +957,7 @@ function LocatorView({
               onCategoryChange(null);
             }
           }}
-          placeholder="Search shelf, rack, item, or category..."
+          placeholder="Search item, shelf, rack, serial, warranty issue, or notes..."
           style={styles.locatorSearchInput}
         />
 
@@ -1150,10 +967,7 @@ function LocatorView({
               key={filter}
               type="button"
               onClick={() => onCategoryChange(category === filter ? null : filter)}
-              style={{
-                ...styles.locatorChip,
-                ...(category === filter ? styles.locatorChipActive : {}),
-              }}
+              style={{ ...styles.locatorChip, ...(category === filter ? styles.locatorChipActive : {}) }}
             >
               {filter}
             </button>
@@ -1161,90 +975,57 @@ function LocatorView({
         </div>
       </div>
 
-      {showResults ? (
-        <>
-          <div style={{ ...styles.card, ...styles.locatorResultsHeaderCard }}>
-            <div>
-              <h3 style={styles.locatorResultsTitle}>{resultTitle}</h3>
-              <p style={styles.locatorResultsSub}>{resultCountLabel}</p>
-            </div>
-            <div style={styles.locatorTotalBadge}>
-              Total: {hasQuantity ? formatNumber(totalQuantity) : "--"}
-            </div>
-          </div>
+      <div style={{ ...styles.card, ...styles.locatorResultsHeaderCard }}>
+        <div>
+          <h3 style={styles.locatorResultsTitle}>{resultTitle}</h3>
+          <p style={styles.locatorResultsSub}>{resultCountLabel}</p>
+        </div>
+        <div style={styles.locatorTotalBadge}>Total: {formatNumber(totalQuantity)}</div>
+      </div>
 
-          {results.length > 0 ? (
-            <div style={styles.locatorResultList}>
-              {results.map((result) => (
-                <LocatorResultCard
-                  key={`${result.shelf}-${result.rack}-${result.item}`}
-                  result={result}
-                />
-              ))}
-            </div>
-          ) : (
-            <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>
-              No matching locations found.
-            </div>
-          )}
-        </>
-      ) : sections.length > 0 ? (
-        <div className="locator-grid" style={styles.locatorGrid}>
-          {sections.map((section) => (
-            <LocatorCard key={section.title} section={section} />
+      {locator.error ? (
+        <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>{locator.error}</div>
+      ) : results.length > 0 ? (
+        <div style={styles.locatorResultList}>
+          {results.map((item) => (
+            <LiveLocatorItemCard key={`${item.category}-${item.itemName}`} item={item} />
           ))}
         </div>
       ) : (
-        <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>
-          No storage areas found.
-        </div>
+        <div style={{ ...styles.card, ...styles.emptyLocatorCard }}>No matching live locator items found.</div>
       )}
     </section>
   );
 }
 
-function LocatorCard({ section }: { section: LocatorSection }) {
-  return (
-    <div style={{ ...styles.card, ...styles.locatorCard }}>
-      <div style={styles.locatorCardHeader}>
-        <div>
-          <h3 style={styles.locatorShelfTitle}>{section.title}</h3>
-        </div>
-        <span style={styles.locatorBadge}>{section.category}</span>
-      </div>
-
-      <div style={styles.locatorRackList}>
-        {section.racks.map((rack) => (
-          <LocatorRackRow
-            key={`${section.title}-${rack.rack}-${rack.item}`}
-            rack={rack}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function LocatorRackRow({ rack }: { rack: LocatorRack }) {
-  return (
-    <div className="locator-rack-row" style={styles.locatorRackRow}>
-      <div style={styles.locatorRackName}>{rack.rack}</div>
-      <div style={styles.locatorRackItem}>{rack.item}</div>
-    </div>
-  );
-}
-
-function LocatorResultCard({ result }: { result: LocatorResult }) {
+function LiveLocatorItemCard({ item }: { item: LocatorItem }) {
   return (
     <div className="locator-result-card" style={{ ...styles.card, ...styles.locatorResultCard }}>
       <div style={styles.locatorResultTop}>
-        <div style={styles.locatorResultItem}>{result.item}</div>
-        <div style={styles.locatorQuantityBadge}>
-          Qty {formatLocatorQuantity(result.quantity)}
+        <div>
+          <div style={styles.locatorResultItem}>{item.itemName}</div>
+          <div style={styles.locatorResultLocation}>{item.category}</div>
         </div>
+        <div style={styles.locatorQuantityBadge}>Qty {formatNumber(item.totalQuantity)}</div>
       </div>
-      <div style={styles.locatorResultLocation}>
-        {result.shelf} · {result.rack}
+
+      <div style={{ display: "grid", gap: 8, marginTop: 14 }}>
+        {item.locations.map((location) => (
+          <div
+            key={`${item.itemName}-${location.locationName}-${location.quantity}-${location.rowNumber}`}
+            className="locator-rack-row"
+            style={styles.locatorRackRow}
+          >
+            <div style={styles.locatorRackName}>{location.locationName}</div>
+            <div style={styles.locatorRackItem}>
+              Qty {formatNumber(location.quantity)}
+              {location.serialNumbers && location.serialNumbers.length > 0
+                ? ` · ${location.serialNumbers.slice(0, 3).join(", ")}${location.serialNumbers.length > 3 ? "…" : ""}`
+                : ""}
+              {location.warrantyIssue ? ` · ${location.warrantyIssue}` : ""}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
